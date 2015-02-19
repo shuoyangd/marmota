@@ -1,4 +1,4 @@
-package edu.jhu.clsp.marmota.util;
+package edu.jhu.marmota.util;
 
 import java.util.HashMap;
 

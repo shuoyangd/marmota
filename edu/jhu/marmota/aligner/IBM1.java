@@ -1,12 +1,12 @@
-package edu.jhu.clsp.marmota.aligner;
+package edu.jhu.marmota.aligner;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Random;
 
-import edu.jhu.clsp.marmota.util.JointCounter;
+import edu.jhu.marmota.util.PairCounter;
+import fig.basic.LogInfo;
 import fig.basic.Pair;
 
 /**
@@ -17,24 +17,24 @@ import fig.basic.Pair;
  */
 public class IBM1 {
 	// the pair always take the form (e, f)
-	private JointCounter<String> sample;
-	private JointCounter<String> param;
-	
-	// zero initialization
-	public IBM1 () {
-		sample = new JointCounter<String>();
-		param = new JointCounter<String>();
-	}
+	private PairCounter<String> sample;
+	private PairCounter<String> param;
 	
 	// random initialization
 	public IBM1 (String efile, String ffile) {
-		sample = new JointCounter<String>();
-		param = new JointCounter<String>();
+		sample = new PairCounter<String>(false, true);
+		param = new PairCounter<String>(true, false);
 		
+		LogInfo.begin_track("initializing");
 		try {
 			BufferedReader ein = new BufferedReader(new FileReader(new File(efile)));
 			BufferedReader fin = new BufferedReader(new FileReader(new File(ffile)));
+			int linen = 0;
 			while (true) {
+				if (linen % 1000 == 0) {
+					System.err.print(".");
+				}
+				
 				String eline = ein.readLine();
 				String fline = fin.readLine();
 				
@@ -44,13 +44,16 @@ public class IBM1 {
 				
 				String[] etoks = eline.split(" ");
 				String[] ftoks = fline.split(" ");
-				Random rand = new Random();
+//				Random rand = new Random();
 				for (String etok: etoks) {
 					for (String ftok: ftoks) {
-						param.increment(new Pair<String, String>(etok, ftok), rand.nextDouble());
+//						param.increment(new Pair<String, String>(etok, ftok), rand.nextDouble());
+						param.increment(new Pair<String, String>(etok, ftok), 1.0 / ftoks.length);
 					}
 				}
+				linen ++;
 			}
+			LogInfo.end_track();
 			ein.close();
 			fin.close();
 		}
@@ -60,8 +63,8 @@ public class IBM1 {
 	}
 	
 	public void e_step(String[] es, String[] fs) {
-		for (String fw: fs) {
-			for (String ew: es) {
+		for (String ew: es) {
+			for (String fw: fs) {
 				Pair<String, String> wp = new Pair<String, String>(ew, fw);
 				double t = param.count(wp);
 				double s = param.countx(ew);
@@ -84,5 +87,9 @@ public class IBM1 {
 	public double get_param(String ew, String fw) {
 		Pair<String, String> wp = new Pair<String, String>(ew, fw);
 		return param.count(wp);
+	}
+	
+	public PairCounter<String> get_param() {
+		return param;
 	}
 }
