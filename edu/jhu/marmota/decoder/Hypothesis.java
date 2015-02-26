@@ -1,5 +1,7 @@
 package edu.jhu.marmota.decoder;
 
+import java.util.Comparator;
+
 import edu.jhu.marmota.util.Hashable;
 
 public abstract class Hypothesis implements Comparable<Hypothesis>, Hashable<Hypothesis> {
@@ -12,6 +14,11 @@ public abstract class Hypothesis implements Comparable<Hypothesis>, Hashable<Hyp
 	public double score;
 	
 	abstract public Hypothesis merge(Hypothesis h1, Hypothesis h2);
+	
+	public Hypothesis(boolean[] state, double score) {
+		this.state = state;
+		this.score = score;
+	}
 	
 	@Override
 	public int compareTo(Hypothesis h) {
@@ -43,4 +50,13 @@ public abstract class Hypothesis implements Comparable<Hypothesis>, Hashable<Hyp
 		}
 		return true;
 	}
+}
+
+class HypothesisComparator implements Comparator<Hypothesis> {
+
+	@Override
+	public int compare(Hypothesis o1, Hypothesis o2) {
+		return Double.compare(o1.score, o2.score);
+	}
+
 }

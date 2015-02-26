@@ -1,6 +1,6 @@
 package edu.jhu.marmota.decoder;
 
-public class StackDecoder implements Decoder {
+public class NaiveStackDecoder implements Decoder {
 	@Override
 	public void init() {
 		
