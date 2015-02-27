@@ -1,6 +1,6 @@
 package edu.jhu.marmota.decoder;
 
-public interface Decoder {
+public interface AbstractDecoder {
 	
 	/**
 	 * the initialization should not rely on external information
