@@ -1,8 +1,9 @@
 package edu.jhu.marmota.decoder;
 
+import java.util.Iterator;
 import java.util.TreeSet;
 
-public class NaiveHypothesisStack<H extends Hypothesis> implements HypothesisStack<H> {
+public class NaiveHypothesisStack<H extends Hypothesis> extends HypothesisStack<H> implements Iterable<Hypothesis> {
 
 	private TreeSet<Hypothesis> stack = new TreeSet<Hypothesis>(new HypothesisComparator());
 	private int maxSize = 100;
@@ -22,9 +23,23 @@ public class NaiveHypothesisStack<H extends Hypothesis> implements HypothesisSta
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public H pop() {
+		return (H)stack.pollLast();
+	}
+	
 	@Override
 	public boolean recombine(H h) {
-		// TODO
+		for (Hypothesis hypo: stack) {
+			@SuppressWarnings("unchecked")
+			H merged = (H) hypo.merge(h);
+			if (merged != null) {
+				stack.remove(hypo);
+				stack.add(merged);
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -43,5 +58,10 @@ public class NaiveHypothesisStack<H extends Hypothesis> implements HypothesisSta
 		else {
 			return false;
 		}
+	}
+
+	@Override
+	public Iterator<Hypothesis> iterator() {
+		return stack.iterator();
 	}
 }

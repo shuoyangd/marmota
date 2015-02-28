@@ -2,6 +2,11 @@ package edu.jhu.marmota.lm;
 
 import java.io.IOException;
 
+/**
+ * generic interface for implementing language model
+ * @author shuoyang
+ *
+ */
 public interface LM {
 
 	/**
@@ -10,7 +15,7 @@ public interface LM {
 	 * @return
 	 * @throws IOException 
 	 */
-	public LM load(String dir) throws IOException;
+	public void load(String dir) throws IOException;
 	
 	/**
 	 * return the beginning state

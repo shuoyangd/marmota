@@ -13,7 +13,7 @@ public abstract class Hypothesis implements Comparable<Hypothesis>, Hashable<Hyp
 	
 	public double score;
 	
-	abstract public Hypothesis merge(Hypothesis h1, Hypothesis h2);
+	abstract public Hypothesis merge(Hypothesis other);
 	
 	public Hypothesis(boolean[] state, double score) {
 		this.state = state;

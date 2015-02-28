@@ -8,6 +8,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Read language model from arpa-format dump file and score strings.
+ * @author shuoyang
+ *
+ */
 public class ARPA implements LM{
 
 	private Map<String[], Double> model = new HashMap<String[], Double>();
@@ -15,30 +20,30 @@ public class ARPA implements LM{
 	private final String start = "<s>";
 	private final String end = "</s>";
 	
-	/**
-	 * don't use constructor, use load method instead
-	 */
-	private ARPA () {
-		
+	public ARPA (String dir) {
+		try {
+			load(dir);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
-	public LM load(String dir) throws IOException {
+	public void load(String dir) throws IOException {
 		BufferedReader in = new BufferedReader(new FileReader(new File(dir)));
-		ARPA lm = new ARPA();
 		String line = in.readLine();
 		while (line != null) {
 			if (line.split(" ").length > 1 && !line.startsWith("ngram")) {
 				String[] cells = line.split("\t");
 				String[] words = cells[1].split(" ");
-				lm.model.put(words, Double.valueOf(cells[0]));
+				model.put(words, Double.valueOf(cells[0]));
 				if (cells.length >= 3) {
-					lm.backoff.put(words, Double.valueOf(cells[2]));
+					backoff.put(words, Double.valueOf(cells[2]));
 				}
 			}
 		}
 		in.close();
-		return lm;
 	}
 	
 	@Override
