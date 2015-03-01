@@ -17,7 +17,7 @@ import fig.basic.Pair;
 import fig.exec.Execution;
 
 public class Aligner implements Runnable {
-	@Option(name = "model", required = true, gloss = "currently support ibm1")
+	@Option(name = "model", required = true, gloss = "currently support [ibm1|hmm|ibmhmm]")
 	public String model;
 
 	@Option(name = "f", required = true, gloss = "foreign file")
@@ -29,8 +29,8 @@ public class Aligner implements Runnable {
 	@Option(name = "a", required = true, gloss = "alignment file")
 	public String afile;
 
-	@Option(name = "maxiter", gloss = "setting the max iteration of em algorithm (DEFAULT = 100)")
-	public int maxiter = 100;
+	@Option(name = "maxiter", gloss = "setting the max iteration of em algorithm (DEFAULT = 5)")
+	public int maxiter = 5;
 
 	@Option(name = "threshold", gloss = "forget about this for now (DEFAULT = 1e-4)")
 	public double threshold = 1e-4;
@@ -52,7 +52,7 @@ public class Aligner implements Runnable {
 			HMMaligner(hmm);
 		}
 		else {
-			System.out.println(model + " is not supported yet.");
+			System.err.println(model + " is not supported yet.");
 		}
 	}
 	

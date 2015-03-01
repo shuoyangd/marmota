@@ -20,6 +20,10 @@ public class ARPA implements LM{
 	private final String start = "<s>";
 	private final String end = "</s>";
 	
+	public ARPA() {
+		
+	}
+	
 	public ARPA (String dir) {
 		try {
 			load(dir);
