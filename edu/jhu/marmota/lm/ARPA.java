@@ -4,10 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import edu.jhu.marmota.util.Strings;
@@ -99,6 +97,25 @@ public class ARPA implements LM{
 	public double score(String babble) {
 		String[] words = babble.split(" ");
 		double score = 0.0;
+		for (int i = 1; i <= words.length; i++) {
+			if (i - ngram < 0) {
+				String[] scoringGrams = new String[i + 1];
+				scoringGrams[0] = "<s>";
+				for (int j = 0; j < i; j++) {
+					scoringGrams[j + 1] = words[j];
+				}
+				score += ngramScore(scoringGrams);
+			}
+			else {
+				score += ngramScore(Arrays.copyOfRange(words, i - ngram, i));
+			}
+		}
+		return score;
+	}
+	
+	public double localscore(String babble) {
+		String[] words = babble.split(" ");
+		double score = 0.0;
 		for (int i = 0; i < words.length - ngram + 1; i++) {
 			score += ngramScore(Arrays.copyOfRange(words, i, i + ngram));
 		}
@@ -118,8 +135,8 @@ public class ARPA implements LM{
 			if (model.containsKey(Strings.consolidate(words))) {
 				return score += model.get(Strings.consolidate(words));
 			}
-			else if (backoff.containsKey(Strings.consolidate(words))) {
-				score += backoff.get(Strings.consolidate(words));
+			else if (backoff.containsKey(Strings.consolidate(Arrays.copyOfRange(words, 0, words.length - 1))) && words.length > 1) {
+				score += backoff.get(Strings.consolidate(Arrays.copyOfRange(words, 0, words.length - 1)));
 			}
 			words = Arrays.copyOfRange(words, 1, words.length);
 		}

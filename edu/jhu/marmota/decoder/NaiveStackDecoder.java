@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import edu.jhu.marmota.lm.ARPA;
-import edu.jhu.marmota.lm.LM;
 import edu.jhu.marmota.phrase.PhraseTable;
 import edu.jhu.marmota.util.Strings;
 import fig.basic.Pair;
@@ -26,7 +25,7 @@ import fig.basic.Pair;
 public class NaiveStackDecoder implements AbstractDecoder {
 	private String ptdir, lmdir;
 	private PhraseTable pt;
-	private LM lm;
+	private ARPA lm;
 	private int maxSize = 100;
 	private int distortionLimit = 5;
 	private int maxPhraseLength = 5;
@@ -49,7 +48,7 @@ public class NaiveStackDecoder implements AbstractDecoder {
 	public void init() {
 		lm = new ARPA(lmdir);
 		pt = new PhraseTable(ptdir);
-		lm.score("honourable senators on what happened to the last Tuesday ?");
+		lm.localscore("last Tuesday </s>");
 	}
 
 	@Override
@@ -224,13 +223,7 @@ public class NaiveStackDecoder implements AbstractDecoder {
 		NaiveHypothesis winner = stacks.get(stacks.size() - 1).pop();
 		return Strings.consolidate(winner.history);
 	}
-
-	private Map<Pair<Integer, Integer>, Double> futureCost(String[] input) {
-		Map<Pair<Integer, Integer>, Double> costs = new HashMap<Pair<Integer, Integer>, Double>();
-		futureCost(costs, input, 0, input.length);
-		return costs;
-	}
-
+	
 	private double futureCost(Map<Pair<Integer, Integer>, Double> costs, String[] input, int i, int j) {
 		double bestScore = Double.NEGATIVE_INFINITY;
 		if (costs.get(new Pair<Integer, Integer>(i, j)) != null) {
