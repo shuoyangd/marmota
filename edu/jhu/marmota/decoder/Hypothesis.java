@@ -50,6 +50,9 @@ public abstract class Hypothesis implements Comparable<Hypothesis>, Hashable<Hyp
 		}
 		return true;
 	}
+	
+	@Override
+	abstract public String toString();
 }
 
 class HypothesisComparator implements Comparator<Hypothesis> {

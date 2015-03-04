@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import fig.basic.LogInfo;
 import fig.basic.Option;
 import fig.exec.Execution;
 
@@ -47,16 +48,29 @@ public class Decoder implements Runnable {
 	
 	public void stackDecode() {
 		try {
-			NaiveStackDecoder decoder = new NaiveStackDecoder(ptfile, lmfile);
+			NaiveStackDecoder decoder = new NaiveStackDecoder(ptfile, lmfile, maxStackSize, distortionLimit, maxPhraseLength);
+			LogInfo.begin_track("initialization");
 			decoder.init();
+			LogInfo.end_track();
+			
+			LogInfo.begin_track("decoding");
 			BufferedReader fin = new BufferedReader(new FileReader(new File(ffile)));
-			BufferedWriter eout = new BufferedWriter(new FileWriter(new File(ffile)));
+			BufferedWriter eout = new BufferedWriter(new FileWriter(new File(efile)));
 			String line = fin.readLine();
+			int linen = 0;
 			while (line != null) {
-				eout.write(decoder.decode(line));
+				if (linen % 1 == 0) {
+					System.err.print(".");
+				}
+				String output = decoder.decode(line);
+				System.out.println(String.valueOf(linen) + output);
+				eout.write(output + "\n");
+				line = fin.readLine();
+				linen++;
 			}
 			fin.close();
 			eout.close();
+			LogInfo.end_track();
 		}
 		catch (IOException e) {
 			e.printStackTrace();

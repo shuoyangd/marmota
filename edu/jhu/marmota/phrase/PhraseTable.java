@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.apache.commons.collections4.map.MultiValueMap;
 
+import fig.basic.LogInfo;
 import fig.basic.Pair;
 
 /**
@@ -24,11 +25,16 @@ public class PhraseTable {
 	private int maxLengthFR, maxLengthEN;
 
 	public PhraseTable(String dir) {
+		LogInfo.begin_track("loading phrase table from file");
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(new File(dir)));
 			String line = in.readLine();
+			int linen = 0;
 			while (line != null) {
-				String[] fields = line.split("|||");
+				if (linen % 1000 == 0) {
+					System.err.print(".");
+				}
+				String[] fields = line.split(" \\|\\|\\| ");
 				Pair<String, String> php = new Pair<String, String>(fields[0], fields[1]);
 				table.put(php, Double.valueOf(fields[2]));
 				f2e.put(fields[0], fields[1]);
@@ -39,17 +45,30 @@ public class PhraseTable {
 				if (fields[1].split(" ").length > maxLengthEN) {
 					maxLengthEN = fields[1].split(" ").length;
 				}
+				line = in.readLine();
+				linen++;
 			}
 			in.close();
 		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+		LogInfo.end_track();
 	}
 	
 	public double score(String fr, String en) {
 		Pair<String, String> php = new Pair<String, String>(fr, en);
-		return table.get(php);
+		if (table.get(php) != null) {
+			return table.get(php);
+		}
+		else {
+			if (fr.split(" ").length == 1) {
+				return 0.0;
+			}
+			else {
+				return Double.NEGATIVE_INFINITY;
+			}
+		}
 	}
 	
 	public Collection<String> f2e(String fr) {

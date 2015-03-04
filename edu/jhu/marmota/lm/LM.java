@@ -10,12 +10,12 @@ import java.io.IOException;
 public interface LM {
 
 	/**
-	 * load LM from dump file
+	 * load lm from dump file
 	 * @param dir
-	 * @return
-	 * @throws IOException 
+	 * @return the maximum n number of the ngram
+	 * @throws IOException
 	 */
-	public void load(String dir) throws IOException;
+	public int load(String dir) throws IOException;
 	
 	/**
 	 * return the beginning state
@@ -33,8 +33,14 @@ public interface LM {
 	/**
 	 * score the wellness of a word sequence
 	 * @param state
-	 * @param word
+	 * @param babble
 	 * @return
 	 */
-	public double score(String...words);
+	public double score(String babble);
+	
+	/**
+	 * get the n of grams the model looks for history
+	 * @return
+	 */
+	public int ngram();
 }

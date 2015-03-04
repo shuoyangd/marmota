@@ -1,5 +1,7 @@
 package edu.jhu.marmota.decoder;
 
+import java.util.Arrays;
+
 /**
  * This is the hypothesis used by the naive stack decoder.
  * It is "naive" because:
@@ -11,12 +13,14 @@ package edu.jhu.marmota.decoder;
  */
 public class NaiveHypothesis extends Hypothesis {
 
+	public double ptScore;
 	public String choice;
 	public String[] history;
 	public int lastTranslatedIndex = -1;
 	
-	public NaiveHypothesis(boolean[] state, double score, String choice, String[] history, int lastTranslatedIndex) {
+	public NaiveHypothesis(boolean[] state, double score, double ptScore, String choice, String[] history, int lastTranslatedIndex) {
 		super(state, score);
+		this.ptScore = ptScore;
 		this.choice = choice;
 		this.history = history;
 		this.lastTranslatedIndex = lastTranslatedIndex;
@@ -46,9 +50,10 @@ public class NaiveHypothesis extends Hypothesis {
 		
 		boolean mergeDecision = score > other.score? true: false;
 		double mergeScore = mergeDecision? score: other.score;
+		double mergePTScore = mergeDecision? ptScore: ((NaiveHypothesis)other).ptScore;
 		String[] mergeHistory = mergeDecision? history: ((NaiveHypothesis)other).history;
 		int mergeIndex = mergeDecision? lastTranslatedIndex: ((NaiveHypothesis)other).lastTranslatedIndex;
-		NaiveHypothesis merged = new NaiveHypothesis(state, mergeScore, choice, mergeHistory, mergeIndex);
+		NaiveHypothesis merged = new NaiveHypothesis(state, mergeScore, mergePTScore, choice, mergeHistory, mergeIndex);
 		return merged;
 	}
 
@@ -60,6 +65,9 @@ public class NaiveHypothesis extends Hypothesis {
 		else if (other instanceof NaiveHypothesis) {
 			NaiveHypothesis sh = (NaiveHypothesis) other;
 			if (this.score != sh.score) {
+				return false;
+			}
+			if (this.ptScore != sh.ptScore) {
 				return false;
 			}
 			if (this.lastTranslatedIndex != sh.lastTranslatedIndex) {
@@ -98,5 +106,12 @@ public class NaiveHypothesis extends Hypothesis {
 		hashCode += (29 * (int) score);
 		hashCode += (choice == null? 0: 37 * choice.hashCode());
 		return hashCode;
+	}
+
+	@Override
+	public String toString() {
+		return "{score " + String.valueOf(score) + "} {state " + Arrays.toString(state) + 
+				"} {history " + Arrays.toString(history) + "} {choice " + choice + 
+				"} {lastTranslatedIndex " + String.valueOf(lastTranslatedIndex);
 	}
 }
