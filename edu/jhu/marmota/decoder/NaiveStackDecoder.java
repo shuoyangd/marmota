@@ -48,7 +48,7 @@ public class NaiveStackDecoder implements AbstractDecoder {
 	public void init() {
 		lm = new ARPA(lmdir);
 		pt = new PhraseTable(ptdir);
-		lm.localscore("last Tuesday </s>");
+		lm.score("what happended last Tuesday </s>");
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class NaiveStackDecoder implements AbstractDecoder {
 			}
 		}
 
-		// first do CKY to estimate cost
+		// this map contains all the calculated future cost
 		Map<Pair<Integer, Integer>, Double> futureCosts = new HashMap<Pair<Integer, Integer>, Double>();
 
 		// when i words are translated
@@ -174,10 +174,10 @@ public class NaiveStackDecoder implements AbstractDecoder {
 								}
 								double lmScore;
 								if (i + k == tokens.length - 1) {
-									lmScore = lm.score(lm.begin() + " " + Strings.consolidate(newHistory) + " "+ lm.end());
+									lmScore = lm.score(Strings.consolidate(newHistory) + " "+ lm.end());
 								}
 								else {
-									lmScore = lm.score(lm.begin() + " " + Strings.consolidate(newHistory));
+									lmScore = lm.score(Strings.consolidate(newHistory));
 								}
 
 								double score = ptScore + lmScore - Math.abs(j - naivehypo.lastTranslatedIndex - 1) + futureCost;
@@ -222,8 +222,8 @@ public class NaiveStackDecoder implements AbstractDecoder {
 					if (darkArtParam == darkArtLimit) {
 						break;
 					}
-					if (bestScore < pt.score(phrase, translation) + lm.score(translation)) {
-						bestScore = pt.score(phrase, translation) + lm.score(translation);
+					if (bestScore < pt.score(phrase, translation) + lm.localscore(translation)) {
+						bestScore = pt.score(phrase, translation) + lm.localscore(translation);
 						darkArtParam = 0;
 					}
 					else {
@@ -246,8 +246,8 @@ public class NaiveStackDecoder implements AbstractDecoder {
 				if (darkArtParam == darkArtLimit) {
 					break;
 				}
-				if (bestScore < pt.score(phrase, translation) + lm.score(translation)) {
-					bestScore = pt.score(phrase, translation) + lm.score(translation);
+				if (bestScore < pt.score(phrase, translation) + lm.localscore(translation)) {
+					bestScore = pt.score(phrase, translation) + lm.localscore(translation);
 					darkArtParam = 0;
 				}
 				else {

@@ -35,7 +35,19 @@ public class NaiveHypothesis extends Hypothesis {
 		if (!(other instanceof NaiveHypothesis)) {
 			return null;
 		}
-		if (!((NaiveHypothesis)other).choice.equals(choice)) {
+		boolean differentHistory = false;
+		if (history.length == ((NaiveHypothesis) other).history.length) {
+			for (int i = 0; i < history.length; i++) {
+				if (!history[i].equals(((NaiveHypothesis) other).history[i])) {
+					differentHistory = true;
+				}
+			}
+		}
+		else{
+			differentHistory = true;
+		}
+		
+		if (!((NaiveHypothesis)other).choice.equals(choice) && differentHistory) {
 			return null;
 		}
 		boolean[] ostate = other.state;
