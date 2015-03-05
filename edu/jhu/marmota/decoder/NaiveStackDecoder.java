@@ -99,14 +99,25 @@ public class NaiveStackDecoder implements AbstractDecoder {
 					start = Math.max(0, center - distortionLimit);
 					end = Math.min(tokens.length, center + distortionLimit);
 				}
+				
+				// find left-most uncovered position to avoid dead end (Bisazza et al. 2015)
+				int leftmost = 0;
+				for (int l = 0; l < naivehypo.state.length; l++) {
+					if (!naivehypo.state[l]) {
+						leftmost = l;
+						break;
+					}
+				}
+				
 				// for each start position of the phrase that falls into the beam
-				for (int j = start; j < end; j++) {
+				for (int j = start; j < Math.min(end, leftmost + distortionLimit); j++) {
 					// you cannot start with some token that has already been translated
 					if (naivehypo.state[j]) {
 						continue;
 					}
+					
 					// for each phrase length that is allowed
-					for (int k = 1; k <= Math.min(maxPhraseLength, tokens.length - j); k++) {
+					for (int k = 1; k <= Math.min(Math.min(maxPhraseLength, tokens.length - j), leftmost + distortionLimit - j + 1); k++) {
 						// if there are translated tokens in between, don't expand anymore
 						if (naivehypo.state[j + k - 1]) {
 							break;
@@ -125,38 +136,7 @@ public class NaiveStackDecoder implements AbstractDecoder {
 						for (int l = j; l < j + k; l++) {
 							newState[l] = true;
 						}
-
-						// check deadend
-						// make sure that every untranslated position can still be searched
-						boolean deadend = false;
-						int hopcounter = j + k;
-						for (int l = 0; l < j + k; l++) {
-							if (hopcounter == 0) {
-								deadend = true;
-							}
-							if (!newState[l]) {
-								hopcounter = distortionLimit - 1;
-							}
-							else {
-								hopcounter --;
-							}
-						}
-						hopcounter = j + k;
-						for (int l = tokens.length - 1; l > j + k; l--) {
-							if (hopcounter == 0) {
-								deadend = true;
-							}
-							if (!newState[l]) {
-								hopcounter = distortionLimit - 1;
-							}
-							else {
-								hopcounter --;
-							}
-						}
-						if (deadend) {
-							continue;
-						}
-
+						
 						// deal with score
 						double futureCost = 0.0;
 						int futureCostStart = 0;
@@ -193,11 +173,11 @@ public class NaiveStackDecoder implements AbstractDecoder {
 									newHistory = expandingEnglishPhrase.split(" ");
 								}
 								double lmScore;
-								if (i == tokens.length - 1) {
-									lmScore = lm.score(lm.begin() + Strings.consolidate(newHistory) + lm.end());
+								if (i + k == tokens.length - 1) {
+									lmScore = lm.score(lm.begin() + " " + Strings.consolidate(newHistory) + " "+ lm.end());
 								}
 								else {
-									lmScore = lm.score(lm.begin() + Strings.consolidate(newHistory));
+									lmScore = lm.score(lm.begin() + " " + Strings.consolidate(newHistory));
 								}
 
 								double score = ptScore + lmScore - Math.abs(j - naivehypo.lastTranslatedIndex - 1) + futureCost;
@@ -212,15 +192,19 @@ public class NaiveStackDecoder implements AbstractDecoder {
 //								System.out.println(newHypo.toString());
 							}
 							// prune the stack
-							stacks.get(i + k).prune();
+							stacks.get(i + 1).prune();
 						}
 					}
 				}
 			}
+			
 		}
 
 		// get best translation possible
 		NaiveHypothesis winner = stacks.get(stacks.size() - 1).pop();
+		if (winner == null) {
+			return "SEARCH ERROR";
+		}
 		return Strings.consolidate(winner.history);
 	}
 	
