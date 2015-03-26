@@ -23,14 +23,12 @@ argparser.add_argument("--bleusmoothingeps", action='store', type=float, default
 argparser.add_argument("--bleusmoothingk", action='store', type=float, default=5.0, help="hyper parameter for bleu smoothing method 4 (deault=5.0)")
 argparser.add_argument("--bleusmoothingalpha", action='store', type=float, default=5.0, help="hyper parameter for bleu smoothing method 6 (deault=5.0)")
 
-args = argparser.parse_args()
-
 def meteor(hsent, esent, a):
 	h = hsent.split(' ')
 	e = esent.split(' ')
 	ch = len(set(h)) # |h|
 	ce = len(set(e)) # |e|
-	ci = sum(1 for w in h if w in e)
+	ci = len(set(h) & set(e))
 	p = float(ci) / float(ch)
 	r = float(ci) / float(ce)
 	if p == 0.0 and r == 0.0:
@@ -45,7 +43,7 @@ def getngrams(toks, ngram):
 		return [tuple(toks)]
 	else:
 		res = []
-		for i in range(0, len(toks) - ngram):
+		for i in range(0, len(toks) - ngram + 1):
 			res += tuple(toks[i: i + ngram])
 		return res
 
@@ -134,6 +132,7 @@ def bleu(hsent, esent, maxgram, smoothing):
 	return p * bp
 
 if __name__ == "__main__":
+	args = argparser.parse_args()
 	hfile = open(args.input)
 	rfile = open(args.reference)
 	

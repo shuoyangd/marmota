@@ -1,5 +1,5 @@
 #! /bin/bash
-# best on 0.3775 -- 0.492256 accuracy
+# best on 0.3775 -- 0.506336 accuracy
 
 for a in 0.37 0.3725 0.375 0.3775 0.38 0.3825 0.385
 do

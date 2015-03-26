@@ -3,7 +3,7 @@
 import sys
 
 if len(sys.argv) < 3:
-	sys.stderr.write("usage: ./compare system1 system2")
+	sys.stderr.write("usage: ./compare system1 system2\n")
 else:
 	if1 = open(sys.argv[1])
 	if2 = open(sys.argv[2])
