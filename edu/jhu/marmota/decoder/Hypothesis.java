@@ -4,7 +4,7 @@ import java.util.Comparator;
 
 import edu.jhu.marmota.util.Hashable;
 
-public abstract class Hypothesis implements Comparable<Hypothesis>, Hashable<Hypothesis> {
+public abstract class Hypothesis implements Comparable<Hypothesis>, Hashable {
 	
 	/**
 	 * element i indicates whether the i-th word in the input sentence is translated
