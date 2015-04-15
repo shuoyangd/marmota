@@ -72,8 +72,12 @@ public class DepNode implements Hashable {
 	
 	@Override
 	public int hashCode() {
-		// TODO
-		return 0;
+		int hash = 0;
+		hash += 23 * postag.hashCode();
+		hash += token.hashCode();
+		hash *= 59;
+		hash += (isTerminal? 1:0);
+		return hash;
 	}
 	
 	@Override

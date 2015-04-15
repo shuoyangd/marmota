@@ -60,12 +60,10 @@ public class NaiveHypothesis extends Hypothesis {
 			}
 		}
 		
-		boolean mergeDecision = score > other.score? true: false;
-		double mergeScore = mergeDecision? score: other.score;
-		double mergePTScore = mergeDecision? ptScore: ((NaiveHypothesis)other).ptScore;
-		String[] mergeHistory = mergeDecision? history: ((NaiveHypothesis)other).history;
-		int mergeIndex = mergeDecision? lastTranslatedIndex: ((NaiveHypothesis)other).lastTranslatedIndex;
-		NaiveHypothesis merged = new NaiveHypothesis(state, mergeScore, mergePTScore, choice, mergeHistory, mergeIndex);
+		NaiveHypothesis template = score > other.score? this: (NaiveHypothesis)other;
+		NaiveHypothesis merged = new NaiveHypothesis(Arrays.copyOf(template.state, template.state.length),
+				template.score, template.ptScore, template.choice, 
+				Arrays.copyOf(template.history, template.history.length), template.lastTranslatedIndex);
 		return merged;
 	}
 

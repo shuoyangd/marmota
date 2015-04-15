@@ -62,7 +62,8 @@ public class PhraseTable {
 			return table.get(php);
 		}
 		else {
-			if (fr.split(" ").length == 1) {
+			// translate unknown foreign word "as is"
+			if (fr.split(" ").length == 1 && !hasPhrase(fr)) {
 				return 0.0;
 			}
 			else {
