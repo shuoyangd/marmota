@@ -29,6 +29,10 @@ public class Tree<T> {
 		this.parent = parent;
 	}
 
+	public Tree<T> getChild(int index) {
+		return children.get(index);
+	}
+	
 	/**
 	 * only does shallow copy
 	 * 
@@ -61,18 +65,50 @@ public class Tree<T> {
 	public List<T> preOrderTraverse() {
 		List<T> res = new ArrayList<T>();
 		res.add(self);
-		for (Tree<T> node: children) {
-			res.addAll(node.preOrderTraverse());
+		if (children != null) {
+			for (Tree<T> node: children) {
+				res.addAll(node.preOrderTraverse());
+			}
 		}
 		return res;
 	}
 	
 	public List<T> postOrderTraverse() {
 		List<T> res = new ArrayList<T>();
-		for (Tree<T> node: children) {
-			res.addAll(node.postOrderTraverse());
+		if (children != null) {
+			for (Tree<T> node: children) {
+				res.addAll(node.postOrderTraverse());
+			}
 		}
 		res.add(self);
+		return res;
+	}
+	
+	public List<T> Terminals() {
+		List<T> res = new ArrayList<T>();
+		if (children == null) {
+			res.add(self);
+		}
+		else {
+			for (Tree<T> node: children) {
+				res.addAll(node.Terminals());
+			}
+		}
+		return res;
+	}
+	
+	public List<T> preTerminals() {
+		List<T> res = new ArrayList<T>();
+		if (children != null) {
+			for (Tree<T> node: children) {
+				if (node.children == null) {
+					res.add(self);
+				}
+				else {
+					res.addAll(node.preTerminals());
+				}
+			}
+		}
 		return res;
 	}
 	

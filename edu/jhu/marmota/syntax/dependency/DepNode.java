@@ -4,20 +4,16 @@ import edu.jhu.marmota.util.Hashable;
 
 public class DepNode implements Hashable {
 	
-	private boolean isTerminal;
-	
 	private String token, postag;
+	
+	public boolean isTerminal;
 	
 	public DepNode(String token, String postag, boolean isTerminal) {
 		this.isTerminal = isTerminal;
 		this.token = token;
 		this.postag = postag;
 	}
-	
-	public boolean isTerminal() {
-		return isTerminal;
-	}
-	
+		
 	public String token() {
 		return token;
 	}
