@@ -2,15 +2,14 @@ package edu.jhu.marmota.syntax.dependency;
 
 import java.util.Arrays;
 
-import edu.jhu.marmota.syntax.SyncRule;
-import fig.basic.Pair;
+import edu.jhu.marmota.util.Hashable;
 
 /**
  * 
  * this synchrounous rule should look like this:
  * 
- * deprule: 发表/VV -> 他/PRN (是/AUX) (谈话/NN)
- * strrule: x -> He x1 x2
+ * deprule: möchten/VV -> Ich/PRN kaffee/NN trinken/VV
+ * strrule: x -> x0 want x2 x1
  * 
  * where x1 corresponds to DepNode[1] and x2 corresponds to DepNode[2]
  * 
@@ -20,7 +19,7 @@ import fig.basic.Pair;
  * @author shuoyang
  *
  */
-public class Dep2StrRule extends SyncRule<DepNode, DepNode[], Object, String[]> {
+public class Dep2StrRule implements Hashable {
 
 	private DepRule srcrule;
 	private String[] tarright;
@@ -35,28 +34,14 @@ public class Dep2StrRule extends SyncRule<DepNode, DepNode[], Object, String[]> 
 		this.tarright = tarright;
 	}
 	
-	public boolean match(DepNode srcleft) {
-		return match(srcleft, null);
+	public DepRule getLeft() {
+		return srcrule;
 	}
 	
-	@Override
-	public boolean match(DepNode srcleft, Object tarleft) {
-		if (!srcrule.match(srcleft)) {
-			return false;
-		}
-		
-		return true;
-	}
-
-	public Pair<DepNode[], String[]> transform(DepNode srcleft) {
-		return transform(srcleft, null);
+	public String[] getRight() {
+		return tarright;
 	}
 	
-	@Override
-	public Pair<DepNode[], String[]> transform(DepNode srcleft, Object tarleft) {
-		return new Pair<DepNode[], String[]>(srcrule.transform(srcleft), tarright);
-	}
-
 	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof Dep2StrRule)) {
@@ -72,5 +57,11 @@ public class Dep2StrRule extends SyncRule<DepNode, DepNode[], Object, String[]> 
 			}
 		}
 		return true;
+	}
+	
+	@Override
+	public int hashCode() {
+		// TODO
+		return 0;
 	}
 }

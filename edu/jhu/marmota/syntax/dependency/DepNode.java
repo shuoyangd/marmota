@@ -5,11 +5,8 @@ import edu.jhu.marmota.util.Hashable;
 public class DepNode implements Hashable {
 	
 	private String token, postag;
-	
-	public boolean isTerminal;
-	
-	public DepNode(String token, String postag, boolean isTerminal) {
-		this.isTerminal = isTerminal;
+		
+	public DepNode(String token, String postag) {
 		this.token = token;
 		this.postag = postag;
 	}
@@ -28,8 +25,7 @@ public class DepNode implements Hashable {
 		}
 		else {
 			DepNode node = (DepNode) other;
-			if (token.equals(node.token) 
-					&& isTerminal == node.isTerminal) {
+			if (token.equals(node.token)) {
 				return true;
 			}
 			return false;
@@ -42,8 +38,7 @@ public class DepNode implements Hashable {
 		}
 		else {
 			DepNode node = (DepNode) other;
-			if ( postag.equals(node.postag)
-					&& isTerminal == node.isTerminal) {
+			if (postag.equals(node.postag)) {
 				return true;
 			}
 			return false;
@@ -58,8 +53,7 @@ public class DepNode implements Hashable {
 		else {
 			DepNode node = (DepNode) other;
 			if (token.equals(node.token) 
-					&& postag.equals(node.postag)
-					&& isTerminal == node.isTerminal) {
+					&& postag.equals(node.postag)) {
 				return true;
 			}
 			return false;
@@ -72,21 +66,16 @@ public class DepNode implements Hashable {
 		hash += 23 * postag.hashCode();
 		hash += token.hashCode();
 		hash *= 59;
-		hash += (isTerminal? 1:0);
 		return hash;
 	}
 	
 	@Override
 	public String toString() {
-		String res = "";
+		String res = "(";
 		res += token;
 		res += "/";
 		res += postag;
-		
-		if (!isTerminal) {
-			res = "(" + res;
-			res += ")";
-		}
+		res += ")";
 		return res;
 	}
 }

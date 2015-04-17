@@ -37,7 +37,7 @@ public class DepTree extends Tree<DepNode> {
 		
 		Map<Integer, DepTree> nodeMap = new HashMap<Integer, DepTree>();
 		for (int i = 0; i < tokens.size(); i++) {
-			nodeMap.put(i, new DepTree(new DepNode(tokens.get(i), postags.get(i), true)));
+			nodeMap.put(i, new DepTree(new DepNode(tokens.get(i), postags.get(i))));
 		}
 		for (String line: depstr) {
 			String GR = line.substring(0, line.indexOf("("));
