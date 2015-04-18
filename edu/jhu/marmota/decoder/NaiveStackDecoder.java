@@ -29,7 +29,6 @@ public class NaiveStackDecoder implements AbstractDecoder {
 	private int maxSize = 100;
 	private int distortionLimit = 5;
 	private int maxPhraseLength = 5;
-	final int darkArtLimit = Integer.MAX_VALUE;
 
 	public NaiveStackDecoder(String ptdir, String lmdir) {
 		this.ptdir = ptdir;
@@ -217,17 +216,9 @@ public class NaiveStackDecoder implements AbstractDecoder {
 			String phrase = input[i];
 			Collection<String> translations = pt.f2e(phrase);
 			if (translations != null) {
-				int darkArtParam = 0;
 				for (String translation : translations) {
-					if (darkArtParam == darkArtLimit) {
-						break;
-					}
 					if (bestScore < pt.score(phrase, translation) + lm.localscore(translation)) {
 						bestScore = pt.score(phrase, translation) + lm.localscore(translation);
-						darkArtParam = 0;
-					}
-					else {
-						darkArtParam++;
 					}
 				}
 				costs.put(new Pair<Integer, Integer>(i, j), bestScore);
@@ -241,17 +232,9 @@ public class NaiveStackDecoder implements AbstractDecoder {
 		String phrase = Strings.consolidate(Arrays.copyOfRange(input, i, j));
 		Collection<String> translations = pt.f2e(phrase);
 		if (translations != null) {
-			int darkArtParam = 0;
 			for (String translation : translations) {
-				if (darkArtParam == darkArtLimit) {
-					break;
-				}
 				if (bestScore < pt.score(phrase, translation) + lm.localscore(translation)) {
 					bestScore = pt.score(phrase, translation) + lm.localscore(translation);
-					darkArtParam = 0;
-				}
-				else {
-					darkArtParam++;
 				}
 			}
 		}

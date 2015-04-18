@@ -19,7 +19,7 @@ import org.apache.commons.collections4.map.MultiValueMap;
  * 
  * for example:
  * 
- * möchten/VV -> Ich/PRN kaffee/NN trinken/VV ||| x0 want x2 x1 ||| -2.718 ||| -2.718
+ * möchten/VV -> Ich/PRN kaffee/NN trinken/VV ||| x0 want x2 x1 ||| -0.693 -0.693 -0.693 -0.693
  * 
  * For efficiency reasons, we don't extract all the lexicalized & unlexicalized rules as in (Xie, 2011). 
  * We just provide all the information we need and select what we need when doing rule-matching.
@@ -30,7 +30,9 @@ import org.apache.commons.collections4.map.MultiValueMap;
 public class Dep2StrRuleTable {
 	
 	private Map<Dep2StrRule, Double> f2etable = new HashMap<Dep2StrRule, Double>();
+	private Map<Dep2StrRule, Double> lexf2etable = new HashMap<Dep2StrRule, Double>();
 	private Map<Dep2StrRule, Double> e2ftable = new HashMap<Dep2StrRule, Double>();
+	private Map<Dep2StrRule, Double> lexe2ftable = new HashMap<Dep2StrRule, Double>();
 	private MultiValueMap<DepRule, String[]> f2e = new MultiValueMap<DepRule, String[]>();
 	
 	public Dep2StrRuleTable(String dir) {
@@ -65,8 +67,11 @@ public class Dep2StrRuleTable {
 		String[] tar = fields[1].split(" ");
 		
 		Dep2StrRule newRule = new Dep2StrRule(src, tar);
-		f2etable.put(newRule, Double.valueOf(fields[2]));
-		e2ftable.put(newRule, Double.valueOf(fields[3]));
+		String[] scores = fields[2].split(" ");
+		f2etable.put(newRule, Double.valueOf(scores[0]));
+		lexf2etable.put(newRule, Double.valueOf(scores[1]));
+		e2ftable.put(newRule, Double.valueOf(scores[2]));
+		lexe2ftable.put(newRule, Double.valueOf(scores[3]));
 		f2e.put(src, tar);
 	}
 	
@@ -88,7 +93,25 @@ public class Dep2StrRuleTable {
 		}
 	}
 	
-	public Collection<String[]> f2e(Dep2StrRule r) {
+	public double lexf2escore(Dep2StrRule r) {
+		if (lexf2etable.get(r) != null) {
+			return lexf2etable.get(r);
+		}
+		else {
+			return Double.NEGATIVE_INFINITY;
+		}
+	}
+	
+	public double lexe2fscore(Dep2StrRule r) {
+		if (lexe2ftable.get(r) != null) {
+			return lexe2ftable.get(r);
+		}
+		else {
+			return Double.NEGATIVE_INFINITY;
+		}
+	}
+	
+	public Collection<String[]> f2e(DepRule r) {
 		return f2e.getCollection(r);
 	}
 	

@@ -21,6 +21,10 @@ public class Tree<T> {
 		children = new ArrayList<Tree<T>>();
 	}
 	
+	public T getSelf() {
+		return self;
+	}
+	
 	public Tree<T> getParent() {
 		return parent;
 	}
@@ -62,9 +66,9 @@ public class Tree<T> {
 		children.add(child);
 	}
 	
-	public List<T> preOrderTraverse() {
-		List<T> res = new ArrayList<T>();
-		res.add(self);
+	public List<Tree<T>> preOrderTraverse() {
+		List<Tree<T>> res = new ArrayList<Tree<T>>();
+		res.add(this);
 		if (children != null) {
 			for (Tree<T> node: children) {
 				res.addAll(node.preOrderTraverse());
@@ -73,14 +77,14 @@ public class Tree<T> {
 		return res;
 	}
 	
-	public List<T> postOrderTraverse() {
-		List<T> res = new ArrayList<T>();
+	public List<Tree<T>> postOrderTraverse() {
+		List<Tree<T>> res = new ArrayList<Tree<T>>();
 		if (children != null) {
 			for (Tree<T> node: children) {
 				res.addAll(node.postOrderTraverse());
 			}
 		}
-		res.add(self);
+		res.add(this);
 		return res;
 	}
 	

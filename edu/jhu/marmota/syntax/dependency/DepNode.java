@@ -5,12 +5,12 @@ import edu.jhu.marmota.util.Hashable;
 public class DepNode implements Hashable {
 	
 	private String token, postag;
-		
+	
 	public DepNode(String token, String postag) {
 		this.token = token;
 		this.postag = postag;
 	}
-		
+
 	public String token() {
 		return token;
 	}
@@ -18,7 +18,7 @@ public class DepNode implements Hashable {
 	public String postag() {
 		return postag;
 	}
-
+	
 	public boolean lexicalizedEquals(Object other) {
 		if (!(other instanceof DepNode)) {
 			return false;
@@ -31,7 +31,7 @@ public class DepNode implements Hashable {
 			return false;
 		}
 	}
-
+	
 	public boolean postagEquals(Object other) {
 		if (!(other instanceof DepNode)) {
 			return false;
@@ -44,7 +44,7 @@ public class DepNode implements Hashable {
 			return false;
 		}
 	}
-	
+		
 	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof DepNode)) {
@@ -64,8 +64,7 @@ public class DepNode implements Hashable {
 	public int hashCode() {
 		int hash = 0;
 		hash += 23 * postag.hashCode();
-		hash += token.hashCode();
-		hash *= 59;
+		hash += 59 * (hash + token.hashCode());
 		return hash;
 	}
 	

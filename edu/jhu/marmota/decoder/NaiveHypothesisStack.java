@@ -64,4 +64,9 @@ public class NaiveHypothesisStack<H extends Hypothesis> extends HypothesisStack<
 	public Iterator<Hypothesis> iterator() {
 		return stack.iterator();
 	}
+
+	@Override
+	public int size() {
+		return stack.size();
+	}
 }

@@ -13,6 +13,13 @@ import org.apache.commons.collections4.map.MultiValueMap;
 import fig.basic.LogInfo;
 import fig.basic.Pair;
 
+/**
+ * The score used in lexeme table of Moses is real space. 
+ * To ensure overflow safety, I transformed this into log space.
+ * 
+ * @author shuoyang
+ *
+ */
 public class LexemeTable {
 	
 	public enum Type {
@@ -42,7 +49,7 @@ public class LexemeTable {
 					System.err.print(".");
 				}
 				String[] fields = line.split(" ");
-				table.put(new Pair<String, String>(fields[0], fields[1]), Double.valueOf(fields[2]));
+				table.put(new Pair<String, String>(fields[0], fields[1]), Math.log(Double.valueOf(fields[2])));
 				if (type == Type.f2e) {
 					f2e.put(fields[0], fields[1]);
 				}
@@ -82,10 +89,10 @@ public class LexemeTable {
 		else {
 			if (!transformable(fr)) {
 				// translate unknown foreign word "as is"
-				return 1.0;
+				return 0.0;
 			}
 			else {
-				return 0.0;
+				return Double.NEGATIVE_INFINITY;
 			}
 		}
 	}

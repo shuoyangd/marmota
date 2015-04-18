@@ -36,4 +36,10 @@ public abstract class HypothesisStack<H extends Hypothesis> {
 	 * @return
 	 */
 	abstract public boolean isOverflow();
+	
+	/**
+	 * get the current size of the stack
+	 * @return
+	 */
+	abstract public int size();
 }
