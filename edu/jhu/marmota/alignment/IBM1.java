@@ -1,4 +1,4 @@
-package edu.jhu.marmota.aligner;
+package edu.jhu.marmota.alignment;
 
 import java.io.BufferedReader;
 import java.io.File;

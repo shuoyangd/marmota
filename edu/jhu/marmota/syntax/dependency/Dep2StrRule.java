@@ -14,7 +14,10 @@ import edu.jhu.marmota.util.Hashable;
  * where x1 corresponds to DepNode[1] and x2 corresponds to DepNode[2]
  * 
  * By the way, since we are doing Dep2Str, the target rule does not have "left-hand side".
- * So we just ignore them in all the functions such as match() and transform(), etc.
+ * So we just ignore them in all the functions such as match() and transform(), etc. 
+ * 
+ * TODO: May need a code refactor to include a Dep2StrRuleBuilder (from string)? 
+ * Currently we are just parsing the string and build the components outside this class. 
  * 
  * @author shuoyang
  *
