@@ -14,9 +14,17 @@ public class Tree<T> {
 	
 	private List<Tree<T>> children;
 	private T self;
+	private int index;
 	
 	public Tree(T self) {
 		this.self = self;
+		parent = null;
+		children = new ArrayList<Tree<T>>();
+	}
+	
+	public Tree(T self, int index) {
+		this.self = self;
+		this.index = index;
 		parent = null;
 		children = new ArrayList<Tree<T>>();
 	}
@@ -46,6 +54,10 @@ public class Tree<T> {
 		List<Tree<T>> res = new ArrayList<Tree<T>>();
 		res.addAll(children);
 		return res;
+	}
+	
+	public int getIndex() {
+		return index;
 	}
 	
 	/**

@@ -17,12 +17,12 @@ import org.apache.commons.collections4.map.MultiValueMap;
  * 
  * source rule ||| target string ||| f2e score ||| e2f score
  * 
- * for example:
+ * Rules can either be lexical or postag rules. 
+ * If it is a lexical rule, the pos-tag position should be filled with a *, for example:
  * 
- * möchten/VV -> Ich/PRN kaffee/NN trinken/VV ||| x0 want x2 x1 ||| -0.693 -0.693 -0.693 -0.693
+ * möchten/* -> Ich/* kaffee/* trinken/* ||| x0 want x2 x1 ||| -0.693 -0.693 -0.693 -0.693
  * 
- * For efficiency reasons, we don't extract all the lexicalized & unlexicalized rules as in (Xie, 2011). 
- * We just provide all the information we need and select what we need when doing rule-matching.
+ * For rules with pos-tag, vice versa.
  * 
  * @author shuoyang
  *
@@ -55,10 +55,23 @@ public class Dep2StrRuleTable {
 		// parse source side rule
 		String srcLeftStr = fields[0].split(" -> ")[0];
 		String[] srcRightStrs = fields[0].split(" -> ")[1].split(" ");
-		DepNode srcLeft = new DepNode(srcLeftStr.split("\\/")[0], srcLeftStr.split("\\/")[1]);
+		String token = null, postag = null;
+		if (!srcLeftStr.split("\\/")[0].equals("*")) {
+			token = srcLeftStr.split("\\/")[0];
+		}
+		if (!srcLeftStr.split("\\/")[1].equals("*")) {
+			postag = srcLeftStr.split("\\/")[1];
+		}
+		DepNode srcLeft = new DepNode(token, postag);
 		List<DepNode> srcRightList = new ArrayList<DepNode>();
 		for (String srcRightStr: srcRightStrs) {
-			srcRightList.add(new DepNode(srcRightStr.split("\\/")[0], srcRightStr.split("\\/")[1]));
+			if (!srcLeftStr.split("\\/")[0].equals("*")) {
+				token = srcRightStr.split("\\/")[0];
+			}
+			if (!srcLeftStr.split("\\/")[1].equals("*")) {
+				postag = srcRightStr.split("\\/")[1];
+			}
+			srcRightList.add(new DepNode(token, postag));
 		}
 		DepNode[] srcRight = srcRightList.toArray(new DepNode[0]);
 		DepRule src = new DepRule(srcLeft, srcRight);

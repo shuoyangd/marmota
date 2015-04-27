@@ -18,8 +18,17 @@ public class DepTree extends Tree<DepNode> {
 	 * 
 	 * @param self
 	 */
-	public DepTree(DepNode self) {
+	private DepTree(DepNode self) {
 		super(self);
+	}
+	
+	/**
+	 * To build a dependency tree, use the DepTreeBuilder instead.
+	 * @param self
+	 * @param index
+	 */
+	private DepTree(DepNode self, int index) {
+		super(self, index);
 	}
 
 	/**
@@ -37,7 +46,7 @@ public class DepTree extends Tree<DepNode> {
 		
 		Map<Integer, DepTree> nodeMap = new HashMap<Integer, DepTree>();
 		for (int i = 0; i < tokens.size(); i++) {
-			nodeMap.put(i, new DepTree(new DepNode(tokens.get(i), postags.get(i))));
+			nodeMap.put(i, new DepTree(new DepNode(tokens.get(i), postags.get(i)), i));
 		}
 		for (String line: depstr) {
 			String GR = line.substring(0, line.indexOf("("));

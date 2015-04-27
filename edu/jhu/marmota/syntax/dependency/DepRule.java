@@ -2,7 +2,9 @@ package edu.jhu.marmota.syntax.dependency;
 
 import java.util.Arrays;
 
-public class DepRule {
+import edu.jhu.marmota.util.Hashable;
+
+public class DepRule implements Hashable {
 	
 	private DepNode left;
 	private DepNode[] right;
@@ -42,6 +44,9 @@ public class DepRule {
 			if (!left.equals(rule.left)) {
 				return false;
 			}
+			if ((right == null) ^ (rule.right == null)) {
+				return false;
+			}
 			if (right.length != rule.right.length) {
 				return false;
 			}
@@ -56,5 +61,11 @@ public class DepRule {
 	public String toString() {
 		// TODO
 		return null;
+	}
+	
+	@Override
+	public int hashCode() {
+		// TODO
+		return 0;
 	}
 }

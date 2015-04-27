@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import edu.jhu.marmota.syntax.dependency.Dep2StrRule;
+import edu.jhu.marmota.util.Hashable;
 import edu.jhu.marmota.util.HyperEdge;
 
 /**
@@ -13,7 +14,7 @@ import edu.jhu.marmota.util.HyperEdge;
  * @author shuoyang
  *
  */
-public class Dep2StrHypothesis extends Hypothesis {
+public class Dep2StrHypothesis extends Hypothesis implements Hashable {
 
 	public Dep2StrRule choice;
 	public String[] history;
