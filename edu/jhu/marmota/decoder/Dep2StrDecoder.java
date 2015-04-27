@@ -44,7 +44,8 @@ public class Dep2StrDecoder implements AbstractDecoder {
 	}
 
 	/**
-	 * The input should be a consituent tree and a dependency tree separated by a blank line (\n\n)
+	 * The input should be a consituent tree and a dependency tree separated by a blank line (\n\n). 
+	 * The current version does not support k-best output
 	 */
 	@Override
 	public String decode(String input) {
@@ -122,8 +123,8 @@ public class Dep2StrDecoder implements AbstractDecoder {
 			stacks.put(node, stack);
 		}
 		// use bp to generate best translation
-		// TODO
-		return null;
+		NaiveHypothesisStack<Dep2StrHypothesis> finalStack = stacks.get(nodes.get(nodes.size() - 1));
+		return Strings.consolidate(finalStack.pop().history);
 	}
 
 	/**
