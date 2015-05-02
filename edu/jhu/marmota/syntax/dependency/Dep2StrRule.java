@@ -17,7 +17,7 @@ import edu.jhu.marmota.util.Hashable;
  * So we just ignore them in all the functions such as match() and transform(), etc. 
  * 
  * TODO: May need a code refactor to include a Dep2StrRuleBuilder (from string)? 
- * Currently we are just parsing the string and build the components outside this class. 
+ * Currently we are just parsing the string and build the components outside this class.
  * 
  * @author shuoyang
  *
@@ -60,6 +60,12 @@ public class Dep2StrRule implements Hashable {
 			}
 		}
 		return true;
+	}
+	
+	@Override
+	public String toString() {
+		// TODO
+		return null;
 	}
 	
 	@Override
