@@ -14,7 +14,6 @@ import edu.jhu.marmota.syntax.dependency.DepNode;
 import edu.jhu.marmota.syntax.dependency.DepRule;
 import edu.jhu.marmota.syntax.dependency.DepTree;
 import edu.jhu.marmota.util.HyperEdge;
-import edu.jhu.marmota.util.Strings;
 import edu.jhu.marmota.util.Tree;
 
 public class Dep2StrDecoder implements AbstractDecoder {
@@ -124,7 +123,7 @@ public class Dep2StrDecoder implements AbstractDecoder {
 		}
 		// use bp to generate best translation
 		NaiveHypothesisStack<Dep2StrHypothesis> finalStack = stacks.get(nodes.get(nodes.size() - 1));
-		return Strings.consolidate(finalStack.pop().history);
+		return String.join(" ", finalStack.pop().history);
 	}
 
 	/**
@@ -241,7 +240,7 @@ public class Dep2StrDecoder implements AbstractDecoder {
 		f2escore += d2st.f2escore(choice);
 		e2fscore += d2st.e2fscore(choice);
 
-		double lmscore = lm.localscore(Strings.consolidate(history));
+		double lmscore = lm.localscore(String.join(" ", history));
 
 		double lexf2escore = 0.0;
 		lexf2escore += d2st.lexf2escore(choice);
@@ -324,7 +323,7 @@ public class Dep2StrDecoder implements AbstractDecoder {
 			if (subsMap.get(i) != null) {
 				int srcRightPos = subsMap.get(i);
 				int hypoIndex = headMap.get(srcRightPos);
-				res += Strings.consolidate(childHypothesis.get(hypoIndex).history);
+				res += String.join(" ", childHypothesis.get(hypoIndex).history);
 				res += " ";
 			}
 			else {

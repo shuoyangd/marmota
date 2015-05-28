@@ -44,4 +44,10 @@ public class AlignmentReader {
 		}
 		return new WordAlignedSentencePair(fsent, esent, alignments);
 	}
+
+	public void close() throws IOException {
+		alignReader.close();
+		foreignReader.close();
+		englishReader.close();
+	}
 }

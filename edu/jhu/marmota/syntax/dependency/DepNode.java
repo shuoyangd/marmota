@@ -2,21 +2,34 @@ package edu.jhu.marmota.syntax.dependency;
 
 import edu.jhu.marmota.util.Hashable;
 
+/**
+ * Node in the dependency tree.
+ *
+ * @author shuoyang
+ */
 public class DepNode implements Hashable {
 	
 	private String token, postag;
-	
+
+	/**
+	 * if the token or the postag is not specified, just provide null for that.
+	 *
+	 * @param token
+	 * @param postag
+	 */
 	public DepNode(String token, String postag) {
 		this.token = token;
 		this.postag = postag;
 	}
 
 	public String token() {
-		return token;
+		if (token == null) return "";
+		else return token;
 	}
 	
 	public String postag() {
-		return postag;
+		if (postag == null) return "";
+		else return postag;
 	}
 	
 	public boolean lexicalizedEquals(Object other) {
@@ -25,7 +38,13 @@ public class DepNode implements Hashable {
 		}
 		else {
 			DepNode node = (DepNode) other;
-			if (token.equals(node.token)) {
+			if (token == null || node.token == null) {
+				return true;
+			}
+			else if (token == null || node.token != null) {
+				return false;
+			}
+			else if (token.equals(node.token)) {
 				return true;
 			}
 			return false;
@@ -38,7 +57,13 @@ public class DepNode implements Hashable {
 		}
 		else {
 			DepNode node = (DepNode) other;
-			if (postag.equals(node.postag)) {
+			if (postag == null || node.postag == null) {
+				return true;
+			}
+			else if (postag == null || node.postag != null) {
+				return false;
+			}
+			else if (postag.equals(node.postag)) {
 				return true;
 			}
 			return false;
@@ -47,15 +72,10 @@ public class DepNode implements Hashable {
 		
 	@Override
 	public boolean equals(Object other) {
-		if (!(other instanceof DepNode)) {
-			return false;
+		if (lexicalizedEquals(other) && postagEquals(other)) {
+			return true;
 		}
 		else {
-			DepNode node = (DepNode) other;
-			if (token.equals(node.token) 
-					&& postag.equals(node.postag)) {
-				return true;
-			}
 			return false;
 		}
 	}
@@ -70,11 +90,23 @@ public class DepNode implements Hashable {
 	
 	@Override
 	public String toString() {
-		String res = "(";
-		res += token;
-		res += "/";
-		res += postag;
-		res += ")";
-		return res;
+		StringBuilder res = new StringBuilder();
+		res.append("(");
+		if (token != null) {
+			res.append(token);
+		}
+		else {
+			res.append("*");
+		}
+		res.append("/");
+		if (postag != null) {
+			res.append(postag);
+		}
+		else {
+			res.append("*");
+		}
+		res.append(")");
+		return res.toString();
 	}
 }
+

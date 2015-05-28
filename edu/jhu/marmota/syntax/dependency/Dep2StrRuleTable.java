@@ -15,12 +15,15 @@ import org.apache.commons.collections4.map.MultiValueMap;
 /**
  * Each line of the disk rule table should look like:
  * 
- * source rule ||| target string ||| f2e score ||| e2f score
+ * source rule ||| target string ||| f2e score e2f score ||| alignments
  * 
  * Rules can either be lexical or postag rules. 
  * If it is a lexical rule, the pos-tag position should be filled with a *, for example:
  * 
- * möchten/* -> Ich/* kaffee/* trinken/* ||| x0 want x2 x1 ||| -0.693 -0.693 -0.693 -0.693
+ * möchten/* -> Ich/* kaffee/* trinken/* ||| $x want $x $x ||| -0.693 -0.693 -0.693 -0.693 ||| 0-1 1-0 2-3 3-2
+ *
+ * On the source side, the index always starts with the head from 0.
+ * On the target side, the index starts with the first token from 0.
  * 
  * For rules with pos-tag, vice versa.
  * 
@@ -28,14 +31,19 @@ import org.apache.commons.collections4.map.MultiValueMap;
  *
  */
 public class Dep2StrRuleTable {
-	
+
+	private String dir;
 	private Map<Dep2StrRule, Double> f2etable = new HashMap<Dep2StrRule, Double>();
 	private Map<Dep2StrRule, Double> lexf2etable = new HashMap<Dep2StrRule, Double>();
 	private Map<Dep2StrRule, Double> e2ftable = new HashMap<Dep2StrRule, Double>();
 	private Map<Dep2StrRule, Double> lexe2ftable = new HashMap<Dep2StrRule, Double>();
 	private MultiValueMap<DepRule, String[]> f2e = new MultiValueMap<DepRule, String[]>();
-	
+
 	public Dep2StrRuleTable(String dir) {
+		this.dir = dir;
+	}
+
+	public void load() {
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(new File(dir)));
 			String line = in.readLine();
@@ -47,6 +55,10 @@ public class Dep2StrRuleTable {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void dump() {
+		// TODO
 	}
 	
 	public void addRule(String record) {
@@ -78,8 +90,8 @@ public class Dep2StrRuleTable {
 		
 		// parse target side rule
 		String[] tar = fields[1].split(" ");
-		
-		Dep2StrRule newRule = new Dep2StrRule(src, tar);
+
+		Dep2StrRule newRule = new Dep2StrRule(src, tar, Dep2StrRule.buildAlignment(fields[3]));
 		String[] scores = fields[2].split(" ");
 		f2etable.put(newRule, Double.valueOf(scores[0]));
 		lexf2etable.put(newRule, Double.valueOf(scores[1]));
@@ -132,3 +144,4 @@ public class Dep2StrRuleTable {
 		return f2e.containsKey(r);
 	}
 }
+

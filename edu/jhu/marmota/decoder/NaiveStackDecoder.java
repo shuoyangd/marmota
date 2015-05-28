@@ -10,7 +10,6 @@ import java.util.Map;
 
 import edu.jhu.marmota.lm.ARPA;
 import edu.jhu.marmota.phrase.PhraseTable;
-import edu.jhu.marmota.util.Strings;
 import fig.basic.Pair;
 
 /**
@@ -122,7 +121,7 @@ public class NaiveStackDecoder implements AbstractDecoder {
 							break;
 						}
 
-						String expandingForeignPhrase = Strings.consolidate(Arrays.copyOfRange(tokens, j, j + k));
+						String expandingForeignPhrase = String.join(" ", Arrays.copyOfRange(tokens, j, j + k));
 						Collection<String> expandingEnglishPhrases = options.get(new Pair<Integer, Integer>(j, k));
 
 						if (expandingEnglishPhrases == null && k == 1) {
@@ -166,17 +165,17 @@ public class NaiveStackDecoder implements AbstractDecoder {
 								String[] oldHistory = naivehypo.history;
 								String[] newHistory;
 								if (oldHistory.length > 0) {
-									newHistory = (Strings.consolidate(oldHistory) + " " + expandingEnglishPhrase).split(" ");
+									newHistory = (String.join(" ", oldHistory) + " " + expandingEnglishPhrase).split(" ");
 								}
 								else {
 									newHistory = expandingEnglishPhrase.split(" ");
 								}
 								double lmScore;
 								if (i + k == tokens.length - 1) {
-									lmScore = lm.score(Strings.consolidate(newHistory) + " "+ lm.end());
+									lmScore = lm.score(String.join(" ", newHistory) + " "+ lm.end());
 								}
 								else {
-									lmScore = lm.score(Strings.consolidate(newHistory));
+									lmScore = lm.score(String.join(" ", newHistory));
 								}
 
 								double score = ptScore + lmScore - Math.abs(j - naivehypo.lastTranslatedIndex - 1) + futureCost;
@@ -204,7 +203,7 @@ public class NaiveStackDecoder implements AbstractDecoder {
 		if (winner == null) {
 			return "SEARCH ERROR";
 		}
-		return Strings.consolidate(winner.history);
+		return String.join(" ", winner.history);
 	}
 	
 	private double futureCost(Map<Pair<Integer, Integer>, Double> costs, String[] input, int i, int j) {
@@ -229,7 +228,7 @@ public class NaiveStackDecoder implements AbstractDecoder {
 			}
 		}
 
-		String phrase = Strings.consolidate(Arrays.copyOfRange(input, i, j));
+		String phrase = String.join(" ", Arrays.copyOfRange(input, i, j));
 		Collection<String> translations = pt.f2e(phrase);
 		if (translations != null) {
 			for (String translation : translations) {

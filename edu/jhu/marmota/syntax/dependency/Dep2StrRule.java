@@ -1,6 +1,8 @@
 package edu.jhu.marmota.syntax.dependency;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import edu.jhu.marmota.util.Hashable;
 
@@ -26,23 +28,73 @@ public class Dep2StrRule implements Hashable {
 
 	private DepRule srcrule;
 	private String[] tarright;
+	/**
+	 * alignments[j] = i
+	 * means the i-th node on the source side is aligned to the j-th node on the target side
+	 */
+	private int[] alignments;
 	
-	public Dep2StrRule(DepNode srcleft, DepNode[] srcright, String[] tarright) {
+	public Dep2StrRule(DepNode srcleft, DepNode[] srcright, String[] tarright, int[] alignments) {
 		srcrule = new DepRule(srcleft, srcright);
 		this.tarright = tarright;
+		this.alignments = alignments;
 	}
 
-	public Dep2StrRule(DepRule srcrule, String[] tarright) {
+	public Dep2StrRule(DepRule srcrule, String[] tarright, int[] alignments) {
 		this.srcrule = srcrule;
 		this.tarright = tarright;
+		this.alignments = alignments;
 	}
-	
+
+	/**
+	 * The record takes the form "0-1 1-0 2-3 3-2". It should be a one-to-many mapping from the source to the target.
+	 *
+	 * @param record
+	 */
+	static public int[] buildAlignment(String record) {
+		String[] tokens= record.split(" ");
+		int[] alignments = new int[tokens.length];
+		for (String token: tokens) {
+			String[] indices = token.split("-");
+			alignments[Integer.valueOf(indices[1])] = Integer.valueOf(indices[0]);
+		}
+		return alignments;
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public String encodeAlignment() {
+		StringBuilder res = new StringBuilder();
+		for (int i = 0; i < alignments.length; i++) {
+			res.append(String.valueOf(i) + "-" + alignments[i]);
+			res.append(" ");
+		}
+		return res.toString().trim();
+	}
+
 	public DepRule getLeft() {
 		return srcrule;
 	}
 	
 	public String[] getRight() {
 		return tarright;
+	}
+	
+	public List<Integer> src2tar(int i) {
+		List<Integer> res = new ArrayList<Integer>();
+		for (int j = 0; j < alignments.length; j++) {
+			if (alignments[j] == i) {
+				res.add(i);
+			}
+		}
+		return res;
+	}
+	
+	public int tar2src(int j) {
+		return alignments[j];
 	}
 	
 	@Override
@@ -74,3 +126,4 @@ public class Dep2StrRule implements Hashable {
 		return 0;
 	}
 }
+

@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.jhu.marmota.util.Strings;
 import fig.basic.LogInfo;
 
 /**
@@ -132,11 +131,11 @@ public class ARPA implements LM{
 		
 		double score = 0.0;
 		while (words.length > 0) {
-			if (model.containsKey(Strings.consolidate(words))) {
-				return score += model.get(Strings.consolidate(words));
+			if (model.containsKey(String.join(" ", words))) {
+				return score += model.get(String.join(" ", words));
 			}
-			else if (backoff.containsKey(Strings.consolidate(Arrays.copyOfRange(words, 0, words.length - 1))) && words.length > 1) {
-				score += backoff.get(Strings.consolidate(Arrays.copyOfRange(words, 0, words.length - 1)));
+			else if (backoff.containsKey(String.join(" ", Arrays.copyOfRange(words, 0, words.length - 1))) && words.length > 1) {
+				score += backoff.get(String.join(" ", Arrays.copyOfRange(words, 0, words.length - 1)));
 			}
 			words = Arrays.copyOfRange(words, 1, words.length);
 		}

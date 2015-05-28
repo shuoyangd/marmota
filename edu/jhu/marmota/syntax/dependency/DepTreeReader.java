@@ -34,4 +34,8 @@ public class DepTreeReader {
 		}
 		return DepTree.DepTreeBuilder(constr.toArray(new String[0]), depstr.toArray(new String[0]));
 	}
+
+	public void close() throws IOException {
+		treeReader.close();
+	}
 }

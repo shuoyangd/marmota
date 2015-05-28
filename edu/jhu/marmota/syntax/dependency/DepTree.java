@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import edu.jhu.marmota.util.PennTreeReader;
-import edu.jhu.marmota.util.Strings;
 import edu.jhu.marmota.util.Tree;
 
 public class DepTree extends Tree<DepNode> {
@@ -33,6 +32,7 @@ public class DepTree extends Tree<DepNode> {
 
 	/**
 	 * Build dependency tree from stanford dependency. 
+	 * The children are sorted by their index in the sentence. 
 	 * You may want to use -keepPunct option to avoid generating "standing alone" punctuation nodes.
 	 * 
 	 * @param constr
@@ -40,7 +40,7 @@ public class DepTree extends Tree<DepNode> {
 	 * @return
 	 */
 	static public DepTree DepTreeBuilder(String[] constr, String[] depstr) {
-		Tree<String> constree = PennTreeReader.ReadPennTree(Strings.consolidate(constr));
+		Tree<String> constree = PennTreeReader.ReadPennTree(String.join(" ", depstr));
 		List<String> tokens = constree.Terminals();
 		List<String> postags = constree.preTerminals();
 		
@@ -62,11 +62,32 @@ public class DepTree extends Tree<DepNode> {
 			depNode.setParent(headNode);
 		}
 		for (DepTree node: nodeMap.values()) {
-			if (node.getParent() != null && !node.getChildren().isEmpty()) {
+			sortChildren(node);
+		}
+		for (DepTree node: nodeMap.values()) {
+			if (node.getParent() == null && !node.getChildren().isEmpty()) {
 				return node;
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Sort children according to index.
+	 * (insertion sort)
+	 * 
+	 * @param nodes
+	 */
+	static private void sortChildren(DepTree head) {
+		List<Tree<DepNode>> children = head.getChildren();
+		for (int i = 1; i < children.size(); i++) {
+			for (int j = 0; j < i; j++) {
+				if (children.get(j).getIndex() > children.get(i).getIndex()) {
+					Tree<DepNode> child = children.remove(i);
+					children.add(j, child);
+				}
+			}
+		}
 	}
 	
 	public void addChildren(DepNode child, String label) {
@@ -89,3 +110,4 @@ public class DepTree extends Tree<DepNode> {
 		return res;
 	}
 }
+
