@@ -116,14 +116,21 @@ public class Dep2StrRule implements Hashable {
 	
 	@Override
 	public String toString() {
-		// TODO
-		return null;
+		StringBuilder res = new StringBuilder();
+		res.append(srcrule.toString());
+		res.append(" ||| ");
+		res.append(String.join(" ", tarright));
+		res.append(" ||| ");
+		res.append(encodeAlignment());
+		return res.toString();
 	}
 	
 	@Override
 	public int hashCode() {
-		// TODO
-		return 0;
+		int hash = srcrule.hashCode();
+		hash = (23 * hash) + tarright.hashCode();
+		hash = (59 * hash) + alignments.hashCode();
+		return hash;
 	}
 }
 

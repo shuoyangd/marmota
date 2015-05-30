@@ -33,10 +33,7 @@ import org.apache.commons.collections4.map.MultiValueMap;
 public class Dep2StrRuleTable {
 
 	private String dir;
-	private Map<Dep2StrRule, Double> f2etable = new HashMap<Dep2StrRule, Double>();
-	private Map<Dep2StrRule, Double> lexf2etable = new HashMap<Dep2StrRule, Double>();
-	private Map<Dep2StrRule, Double> e2ftable = new HashMap<Dep2StrRule, Double>();
-	private Map<Dep2StrRule, Double> lexe2ftable = new HashMap<Dep2StrRule, Double>();
+	private Map<Dep2StrRule, RuleScore> scoretable = new HashMap<Dep2StrRule, RuleScore>();
 	private MultiValueMap<DepRule, String[]> f2e = new MultiValueMap<DepRule, String[]>();
 
 	public Dep2StrRuleTable(String dir) {
@@ -57,10 +54,6 @@ public class Dep2StrRuleTable {
 		}
 	}
 
-	public void dump() {
-		// TODO
-	}
-	
 	public void addRule(String record) {
 		String[] fields = record.split(" \\|\\|\\| ");
 		
@@ -85,24 +78,23 @@ public class Dep2StrRuleTable {
 			}
 			srcRightList.add(new DepNode(token, postag));
 		}
-		DepNode[] srcRight = srcRightList.toArray(new DepNode[0]);
+		DepNode[] srcRight = srcRightList.toArray(new DepNode[srcRightList.size()]);
 		DepRule src = new DepRule(srcLeft, srcRight);
 		
 		// parse target side rule
 		String[] tar = fields[1].split(" ");
 
 		Dep2StrRule newRule = new Dep2StrRule(src, tar, Dep2StrRule.buildAlignment(fields[3]));
-		String[] scores = fields[2].split(" ");
-		f2etable.put(newRule, Double.valueOf(scores[0]));
-		lexf2etable.put(newRule, Double.valueOf(scores[1]));
-		e2ftable.put(newRule, Double.valueOf(scores[2]));
-		lexe2ftable.put(newRule, Double.valueOf(scores[3]));
+		String[] scoreTokens = fields[2].split(" ");
+		RuleScore scores = new RuleScore(Double.valueOf(scoreTokens[0]), Double.valueOf(scoreTokens[1]),
+				Double.valueOf(scoreTokens[2]), Double.valueOf(scoreTokens[3]));
+		scoretable.put(newRule, scores);
 		f2e.put(src, tar);
 	}
-	
+
 	public double f2escore(Dep2StrRule r) {
-		if (f2etable.get(r) != null) {
-			return f2etable.get(r);
+		if (scoretable.get(r) != null) {
+			return scoretable.get(r).f2escore;
 		}
 		else {
 			return Double.NEGATIVE_INFINITY;
@@ -110,8 +102,8 @@ public class Dep2StrRuleTable {
 	}
 	
 	public double e2fscore(Dep2StrRule r) {
-		if (e2ftable.get(r) != null) {
-			return e2ftable.get(r);
+		if (scoretable.get(r) != null) {
+			return scoretable.get(r).e2fscore;
 		}
 		else {
 			return Double.NEGATIVE_INFINITY;
@@ -119,8 +111,8 @@ public class Dep2StrRuleTable {
 	}
 	
 	public double lexf2escore(Dep2StrRule r) {
-		if (lexf2etable.get(r) != null) {
-			return lexf2etable.get(r);
+		if (scoretable.get(r) != null) {
+			return scoretable.get(r).lexf2escore;
 		}
 		else {
 			return Double.NEGATIVE_INFINITY;
@@ -128,8 +120,8 @@ public class Dep2StrRuleTable {
 	}
 	
 	public double lexe2fscore(Dep2StrRule r) {
-		if (lexe2ftable.get(r) != null) {
-			return lexe2ftable.get(r);
+		if (scoretable.get(r) != null) {
+			return scoretable.get(r).lexe2fscore;
 		}
 		else {
 			return Double.NEGATIVE_INFINITY;
@@ -141,7 +133,7 @@ public class Dep2StrRuleTable {
 	}
 	
 	public boolean hasRule(Dep2StrRule r) {
-		return f2e.containsKey(r);
+		return scoretable.containsKey(r);
 	}
 }
 

@@ -51,3 +51,4 @@ public class AlignmentReader {
 		englishReader.close();
 	}
 }
+

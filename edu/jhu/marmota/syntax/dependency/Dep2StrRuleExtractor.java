@@ -13,6 +13,8 @@ import edu.jhu.marmota.util.Indexed;
 import edu.jhu.marmota.util.Numbers;
 import edu.jhu.marmota.util.PairCounter;
 import edu.jhu.marmota.util.Tree;
+import fig.basic.Option;
+import fig.basic.OptionsParser;
 import fig.basic.Pair;
 
 /**
@@ -23,6 +25,7 @@ import fig.basic.Pair;
  * @author shuoyang
  */
 public class Dep2StrRuleExtractor {
+
 	private enum OpenClass {
 		CD("CD"),
 		DT("DT"),
@@ -70,12 +73,11 @@ public class Dep2StrRuleExtractor {
 	public void extract() throws IOException {
 		WordAlignedSentencePair alignment = alignmentReader.read();
 		DepTree tree = depTreeReader.read();
-		Map<Dep2StrRule, RuleScore> extractedRuleTable = new HashMap<Dep2StrRule, RuleScore>();
-		
+
 		while (tree != null && alignment != null) {
 			List<Pair<Integer, Integer>> headSpans = headSpan(tree, alignment);
 			boolean[] consistency = consistency(headSpans);
-			List<Pair<Integer, Integer>> depSpan = depSpan(tree, alignment, headSpans, consistency);
+			List<Pair<Integer, Integer>> depSpan = depSpan(tree, headSpans, consistency);
 
 			List<Tree<DepNode>> nodes = tree.postOrderTraverse();
 			// for head-dependent segments headed at each node
@@ -123,8 +125,8 @@ public class Dep2StrRuleExtractor {
 							nodeTranslation.append(alignment.e[j]);
 							nodeTranslation.append(" ");
 						}
-						rawtar.add(new Indexed(headSpan.getFirst(), nodeTranslation.toString().trim()));
-						rawtar2src.add(new Indexed(headSpan.getFirst(), 0));
+						rawtar.add(new Indexed<String>(headSpan.getFirst(), nodeTranslation.toString().trim()));
+						rawtar2src.add(new Indexed<Integer>(headSpan.getFirst(), 0));
 						// dependent to target
 						for (int i = 0; i < children.size(); i++) {
 							if (!internalSites.contains(i + 1)) {
@@ -150,7 +152,7 @@ public class Dep2StrRuleExtractor {
 						for (Tree<DepNode> child : children) {
 							dependentsList.add(child.getSelf());
 						}
-						DepNode[] rawDependents = dependentsList.toArray(new DepNode[0]);
+						DepNode[] rawDependents = dependentsList.toArray(new DepNode[dependentsList.size()]);
 
 						// build lexicalized rules
 						Dep2StrRule lexRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, null);
@@ -283,12 +285,11 @@ public class Dep2StrRuleExtractor {
 	 * The headSpans and consistency should also be co-indexed with the nodes in the dependency tree.
 	 * 
 	 * @param root
-	 * @param alignment
 	 * @param headSpans
+	 * @param consistency
 	 * @return
 	 */
-	private List<Pair<Integer, Integer>> depSpan(DepTree root, WordAlignedSentencePair alignment,
-												 List<Pair<Integer, Integer>> headSpans, boolean[] consistency) {
+	private List<Pair<Integer, Integer>> depSpan(DepTree root, List<Pair<Integer, Integer>> headSpans, boolean[] consistency) {
 		List<Tree<DepNode>> nodes = root.postOrderTraverse();
 		List<Pair<Integer, Integer>> res = new ArrayList<Pair<Integer, Integer>>(nodes.size());
 		for (Tree<DepNode> node: nodes) {
@@ -365,8 +366,8 @@ public class Dep2StrRuleExtractor {
 			}
 		}
 
-		String[] tar = tarList.toArray(new String[0]);
-		int[] alignment = Numbers.Integer2int(alignmentList.toArray(new Integer[0]));
+		String[] tar = tarList.toArray(new String[tarList.size()]);
+		int[] alignment = Numbers.Integer2int(alignmentList.toArray(new Integer[alignmentList.size()]));
 
 		return new Dep2StrRule(srcleft, srcright, tar, alignment);
 	}

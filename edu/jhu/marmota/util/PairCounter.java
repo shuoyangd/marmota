@@ -145,3 +145,4 @@ public class PairCounter<T> extends AbstractCounter<Pair<T, T>> {
 		counter = new HashMap<Pair<T, T>, Double>();
 	}
 }
+

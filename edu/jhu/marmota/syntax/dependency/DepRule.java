@@ -14,18 +14,6 @@ public class DepRule implements Hashable {
 		this.right = right;
 	}
 	
-	public DepRule() {
-		
-	}
-	
-	public void setLeft(DepNode left) {
-		this.left = left;
-	}
-	
-	public void setRight(DepNode[] right) {
-		this.right = right;
-	}
-	
 	public DepNode getLeft() {
 		return left;
 	}
@@ -59,13 +47,21 @@ public class DepRule implements Hashable {
 	
 	@Override
 	public String toString() {
-		// TODO
-		return null;
+		StringBuilder res = new StringBuilder();
+		res.append(left.toString());
+		res.append(" -> ");
+		for (DepNode token: right) {
+			res.append(token.toString());
+			res.append(" ");
+		}
+		return res.toString().trim();
 	}
 	
 	@Override
 	public int hashCode() {
-		// TODO
-		return 0;
+		int hash = 17 * left.hashCode();
+		hash = 93 * hash + right.hashCode();
+		return hash;
 	}
 }
+
