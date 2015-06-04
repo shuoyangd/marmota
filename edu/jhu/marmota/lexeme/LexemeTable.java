@@ -49,12 +49,12 @@ public class LexemeTable {
 					System.err.print(".");
 				}
 				String[] fields = line.split(" ");
-				table.put(new Pair<String, String>(fields[0], fields[1]), Math.log(Double.valueOf(fields[2])));
+				table.put(new Pair<String, String>(fields[1], fields[0]), Math.log(Double.valueOf(fields[2])));
 				if (type == Type.f2e) {
-					f2e.put(fields[0], fields[1]);
+					f2e.put(fields[1], fields[0]);
 				}
 				else if (type == Type.e2f) {
-					e2f.put(fields[0], fields[1]);
+					e2f.put(fields[1], fields[0]);
 				}
 				line = in.readLine();
 				linen++;

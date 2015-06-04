@@ -66,4 +66,3 @@ public class DepRule implements Hashable {
 		return hash;
 	}
 }
-

@@ -22,6 +22,13 @@ public class DepNode implements Hashable {
 		this.postag = postag;
 	}
 
+	public DepNode(String dump) {
+		dump = dump.trim();
+		int sepIndex = dump.indexOf("/");
+		this.token = dump.substring(1, sepIndex);
+		this.postag = dump.substring(sepIndex + 1, dump.length() - 1);
+	}
+
 	public String token() {
 		if (token == null) return "";
 		else return token;

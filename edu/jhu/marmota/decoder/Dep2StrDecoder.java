@@ -8,12 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import edu.jhu.marmota.lm.ARPA;
-import edu.jhu.marmota.syntax.dependency.Dep2StrRule;
-import edu.jhu.marmota.syntax.dependency.Dep2StrRuleTable;
-import edu.jhu.marmota.syntax.dependency.DepNode;
-import edu.jhu.marmota.syntax.dependency.DepRule;
-import edu.jhu.marmota.syntax.dependency.DepTree;
+import edu.jhu.marmota.syntax.dependency.*;
 import edu.jhu.marmota.util.HyperEdge;
+import edu.jhu.marmota.util.PennTreeReader;
 import edu.jhu.marmota.util.Tree;
 
 public class Dep2StrDecoder implements AbstractDecoder {
@@ -51,7 +48,7 @@ public class Dep2StrDecoder implements AbstractDecoder {
 		String[] stanford = input.split("\\n\\n");
 		String[] cstrs = stanford[0].split("\\n");
 		String[] dstrs = stanford[1].split("\\n");
-		DepTree tree = DepTree.StanfordDepTreeBuilder(cstrs, dstrs);
+		DepTree tree = DepTreeReader.StanfordDepTreeBuilder(PennTreeReader.ReadPennTree(String.join(" ", cstrs)), dstrs);
 		Map<Tree<DepNode>, NaiveHypothesisStack<Dep2StrHypothesis>> stacks = new HashMap<Tree<DepNode>, NaiveHypothesisStack<Dep2StrHypothesis>>();
 		List<Tree<DepNode>> nodes = tree.postOrderTraverse();
 		for (Tree<DepNode> node : nodes) {

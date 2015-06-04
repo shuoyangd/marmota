@@ -211,13 +211,15 @@ public class Dep2StrRuleExtractor {
 			for (int j = 0; j < ruleAlignment.length; j++) {
 				if (!tarRule[j].startsWith("$")) {
 					if (ruleAlignment[j] == 0) {
-						lexe2fscore += lexe2f.score(srcRule[0], tarRule[j]);
-						lexf2escore += lexf2e.score(srcRule[0], tarRule[j]);
+						String srctoken = new DepNode(srcRule[0]).token();
+						lexe2fscore += lexe2f.score(srctoken, tarRule[j]);
+						lexf2escore += lexf2e.score(srctoken, tarRule[j]);
 					}
 					// need to eliminate "->"
 					else {
-						lexe2fscore += lexe2f.score(srcRule[ruleAlignment[j] + 1], tarRule[j]);
-						lexf2escore += lexf2e.score(srcRule[ruleAlignment[j] + 1], tarRule[j]);
+						String srctoken = new DepNode(srcRule[ruleAlignment[j] + 1]).token();
+						lexe2fscore += lexe2f.score(srctoken, tarRule[j]);
+						lexf2escore += lexf2e.score(srctoken, tarRule[j]);
 					}
 				}
 			}
@@ -231,11 +233,11 @@ public class Dep2StrRuleExtractor {
 			record.append(" ||| ");
 			record.append(String.valueOf(e2fscore));
 			record.append(" ");
-			record.append(String.valueOf(lexe2fscore));
+			record.append(String.valueOf(Math.exp(lexe2fscore)));
 			record.append(" ");
 			record.append(String.valueOf(f2escore));
 			record.append(" ");
-			record.append(String.valueOf(lexf2escore));
+			record.append(String.valueOf(Math.exp(lexf2escore)));
 			record.append(" ||| ");
 			record.append(alignmentStr);
 			record.append("\n");
@@ -429,4 +431,3 @@ public class Dep2StrRuleExtractor {
 		return new Dep2StrRule(srcleft, srcright, tar, alignment);
 	}
 }
-
