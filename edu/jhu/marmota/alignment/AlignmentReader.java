@@ -17,9 +17,9 @@ public class AlignmentReader {
 	private BufferedReader englishReader;
 	
 	public AlignmentReader(String align, String foreign, String english) throws FileNotFoundException {
-		alignReader = new BufferedReader(new FileReader(new File("align")));
-		foreignReader = new BufferedReader(new FileReader(new File("foreign")));
-		englishReader = new BufferedReader(new FileReader(new File("english")));
+		alignReader = new BufferedReader(new FileReader(new File(align)));
+		foreignReader = new BufferedReader(new FileReader(new File(foreign)));
+		englishReader = new BufferedReader(new FileReader(new File(english)));
 	}
 	
 	public WordAlignedSentencePair read() throws IOException {

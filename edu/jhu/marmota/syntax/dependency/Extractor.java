@@ -35,7 +35,7 @@ public class Extractor implements Runnable {
 	public void run() {
 		try {
 			Dep2StrRuleExtractor extractor = new Dep2StrRuleExtractor(align,
-					fr, en, dep, f2e, e2f, rule);
+					fr, en, dep, rule, f2e, e2f);
 			extractor.extract();
 		}
 		catch (IOException e) {

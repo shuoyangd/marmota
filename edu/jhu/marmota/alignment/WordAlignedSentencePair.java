@@ -17,6 +17,8 @@ public class WordAlignedSentencePair {
 	public WordAlignedSentencePair(String[] f, String[] e, List<Pair<Integer, Integer>> alignments) {
 		this.f = f;
 		this.e = e;
+		f2e = new MultiValueMap<Integer, Integer>();
+		e2f = new MultiValueMap<Integer, Integer>();
 		for (Pair<Integer, Integer> alignment: alignments) {
 			f2e.put(alignment.getFirst(), alignment.getSecond());
 			e2f.put(alignment.getSecond(), alignment.getFirst());
@@ -26,6 +28,8 @@ public class WordAlignedSentencePair {
 	public WordAlignedSentencePair(String f, String e, List<Pair<Integer, Integer>> alignments) {
 		this.f = f.split(" ");
 		this.e = e.split(" ");
+		f2e = new MultiValueMap<Integer, Integer>();
+		e2f = new MultiValueMap<Integer, Integer>();
 		for (Pair<Integer, Integer> alignment: alignments) {
 			f2e.put(alignment.getFirst(), alignment.getSecond());
 			e2f.put(alignment.getSecond(), alignment.getFirst());

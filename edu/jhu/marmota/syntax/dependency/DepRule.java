@@ -49,10 +49,12 @@ public class DepRule implements Hashable {
 	public String toString() {
 		StringBuilder res = new StringBuilder();
 		res.append(left.toString());
-		res.append(" -> ");
-		for (DepNode token: right) {
-			res.append(token.toString());
-			res.append(" ");
+		if (right != null && right.length > 0) {
+			res.append(" -> ");
+			for (DepNode token : right) {
+				res.append(token.toString());
+				res.append(" ");
+			}
 		}
 		return res.toString().trim();
 	}

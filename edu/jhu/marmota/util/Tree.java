@@ -10,11 +10,11 @@ public class Tree<T> {
 	 * 1. optional, you are free to choose whether to use it or not;
 	 * 2. does not provide any guarantee -- parent(n) may not include n as a child.
 	 */
-	private Tree<T> parent;
+	protected Tree<T> parent;
 	
-	private List<Tree<T>> children;
+	protected List<Tree<T>> children;
 	private T self;
-	private int index;
+	protected int index;
 	
 	public Tree(T self) {
 		this.self = self;
@@ -81,7 +81,7 @@ public class Tree<T> {
 	public List<Tree<T>> preOrderTraverse() {
 		List<Tree<T>> res = new ArrayList<Tree<T>>();
 		res.add(this);
-		if (children != null) {
+		if (!children.isEmpty()) {
 			for (Tree<T> node: children) {
 				res.addAll(node.preOrderTraverse());
 			}
@@ -91,7 +91,7 @@ public class Tree<T> {
 	
 	public List<Tree<T>> postOrderTraverse() {
 		List<Tree<T>> res = new ArrayList<Tree<T>>();
-		if (children != null) {
+		if (!children.isEmpty()) {
 			for (Tree<T> node: children) {
 				res.addAll(node.postOrderTraverse());
 			}
@@ -102,7 +102,7 @@ public class Tree<T> {
 	
 	public List<T> Terminals() {
 		List<T> res = new ArrayList<T>();
-		if (children == null) {
+		if (children.isEmpty()) {
 			res.add(self);
 		}
 		else {
@@ -115,9 +115,9 @@ public class Tree<T> {
 	
 	public List<T> preTerminals() {
 		List<T> res = new ArrayList<T>();
-		if (children != null) {
+		if (!children.isEmpty()) {
 			for (Tree<T> node: children) {
-				if (node.children == null) {
+				if (node.children.isEmpty()) {
 					res.add(self);
 				}
 				else {
@@ -130,16 +130,18 @@ public class Tree<T> {
 	
 	@Override
 	public String toString() {
-		String res = "(";
-		res += self.toString();
-		for (Tree<T> node: children) {
-			if (node.children.isEmpty()) {
-				res += (" " + node.toString());
-			}
-			else {
-				res += " (" + node.toString() + ")";
-			}
+		StringBuilder res = new StringBuilder();
+		if (this.getChildren().isEmpty()) {
+			res.append(this.self.toString());
 		}
-		return res;
+		else {
+			res.append("(" + this.self.toString() + " ");
+			for (Tree<T> child: this.getChildren()) {
+				res.append(child.toString());
+			}
+			res.append(")");
+		}
+		return res.toString();
 	}
 }
+

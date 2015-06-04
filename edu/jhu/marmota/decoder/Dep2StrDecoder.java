@@ -51,7 +51,7 @@ public class Dep2StrDecoder implements AbstractDecoder {
 		String[] stanford = input.split("\\n\\n");
 		String[] cstrs = stanford[0].split("\\n");
 		String[] dstrs = stanford[1].split("\\n");
-		DepTree tree = DepTree.DepTreeBuilder(cstrs, dstrs);
+		DepTree tree = DepTree.StanfordDepTreeBuilder(cstrs, dstrs);
 		Map<Tree<DepNode>, NaiveHypothesisStack<Dep2StrHypothesis>> stacks = new HashMap<Tree<DepNode>, NaiveHypothesisStack<Dep2StrHypothesis>>();
 		List<Tree<DepNode>> nodes = tree.postOrderTraverse();
 		for (Tree<DepNode> node : nodes) {
@@ -97,21 +97,21 @@ public class Dep2StrDecoder implements AbstractDecoder {
 				// oov, build pseudo rule by not translating the source word
 				if (headtars.isEmpty()) {
 					tar[headpos] = node.getSelf().token();
-					choices.add(new Dep2StrRule(srcRule, tar));
+//					choices.add(new Dep2StrRule(srcRule, tar));
 				}
 				// dictionary, build pseudo rules by applying "dictionary rule" on head
 				else {
 					// tars should be of length 1
 					for (String[] headtar: headtars) {
 						tar[headpos] = headtar[0];
-						choices.add(new Dep2StrRule(srcRule, tar));
+//						choices.add(new Dep2StrRule(srcRule, tar));
 					}
 				}
 			}
 			// no need to construct pseudo rule
 			else {
 				for (String[] tar : tars) {
-					choices.add(new Dep2StrRule(srcRule, tar));
+//					choices.add(new Dep2StrRule(srcRule, tar));
 				}
 			}
 			// push stack
@@ -220,12 +220,9 @@ public class Dep2StrDecoder implements AbstractDecoder {
 	 * @param choice
 	 *            the chosen rule for the derivation
 	 * 
-	 * @param headIndex
+	 * @param headindex
 	 *            the index of the head of parameter choice
-	 * 
-	 * @param inputlength
-	 *            the length of the input sentence
-	 * 
+	 *
 	 * @return
 	 */
 	private Dep2StrHypothesis derivHypothesis(List<Dep2StrHypothesis> childHypothesis, Dep2StrRule choice, int headindex) {
@@ -285,8 +282,7 @@ public class Dep2StrDecoder implements AbstractDecoder {
 	/**
 	 * 
 	 * @param childHypothesis
-	 * @param srcRight
-	 * @param tar
+	 * @param choice
 	 * @return
 	 */
 	private String[] substitute(List<Dep2StrHypothesis> childHypothesis, Dep2StrRule choice) {

@@ -25,14 +25,17 @@ public class DepTreeReader {
 			return null;
 		}
 		
-		while (currentString.trim() != "") {
+		while (!currentString.trim().equals("")) {
 			constr.add(currentString);
+			currentString = treeReader.readLine();
 		}
 		currentString = treeReader.readLine();
-		while (currentString.trim() != "") {
+		while (!currentString.trim().equals("")) {
 			depstr.add(currentString);
+			currentString = treeReader.readLine();
 		}
-		return DepTree.DepTreeBuilder(constr.toArray(new String[0]), depstr.toArray(new String[0]));
+		return DepTree.StanfordDepTreeBuilder(constr.toArray(new String[constr.size()]),
+				depstr.toArray(new String[depstr.size()]));
 	}
 
 	public void close() throws IOException {

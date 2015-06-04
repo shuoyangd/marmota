@@ -13,8 +13,6 @@ import edu.jhu.marmota.util.Indexed;
 import edu.jhu.marmota.util.Numbers;
 import edu.jhu.marmota.util.PairCounter;
 import edu.jhu.marmota.util.Tree;
-import fig.basic.Option;
-import fig.basic.OptionsParser;
 import fig.basic.Pair;
 
 /**
@@ -132,15 +130,19 @@ public class Dep2StrRuleExtractor {
 							if (!internalSites.contains(i + 1)) {
 								nodeTranslation = new StringBuilder();
 								headSpan = headSpans.get(children.get(i).getIndex());
-								for (int j = headSpan.getFirst(); j <= headSpan.getSecond(); j++) {
-									nodeTranslation.append(alignment.e[j]);
-									nodeTranslation.append(" ");
+								if (headSpan != null) {
+									for (int j = headSpan.getFirst(); j <= headSpan.getSecond(); j++) {
+										nodeTranslation.append(alignment.e[j]);
+										nodeTranslation.append(" ");
+									}
+									rawtar.add(new Indexed<String>(headSpan.getFirst(), nodeTranslation.toString().trim()));
 								}
-								rawtar.add(new Indexed<String>(headSpan.getFirst(), nodeTranslation.toString().trim()));
 							} else {
 								rawtar.add(new Indexed<String>(headSpan.getFirst(), "$x"));
 							}
-							rawtar2src.add(new Indexed<Integer>(headSpan.getFirst(), i + 1));
+							if (headSpan != null) {
+								rawtar2src.add(new Indexed<Integer>(headSpan.getFirst(), i + 1));
+							}
 						}
 
 						// build raw source side of the rules
@@ -163,28 +165,34 @@ public class Dep2StrRuleExtractor {
 
 						// build unlexicalzed rules
 						// leaf substitution
-						Dep2StrRule leafRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, leafSites);
-						srcRuleStr = leafRule.getLeft().toString();
-						tarRuleStr = String.join(" ", lexRule.getRight());
-						tarRuleStr += (" ||| " + lexRule.encodeAlignment());
-						ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
+						if (!leafSites.isEmpty()) {
+							Dep2StrRule leafRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, leafSites);
+							srcRuleStr = leafRule.getLeft().toString();
+							tarRuleStr = String.join(" ", lexRule.getRight());
+							tarRuleStr += (" ||| " + lexRule.encodeAlignment());
+							ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
+						}
 
 						// internal substitution
-						Dep2StrRule internalRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, internalSites);
-						srcRuleStr = internalRule.getLeft().toString();
-						tarRuleStr = String.join(" ", lexRule.getRight());
-						tarRuleStr += (" ||| " + lexRule.encodeAlignment());
-						ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
+						if (!internalSites.isEmpty()) {
+							Dep2StrRule internalRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, internalSites);
+							srcRuleStr = internalRule.getLeft().toString();
+							tarRuleStr = String.join(" ", lexRule.getRight());
+							tarRuleStr += (" ||| " + lexRule.encodeAlignment());
+							ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
+						}
 
 						// leaf + internal substitution
-						List<Integer> allSites = new ArrayList<Integer>();
-						allSites.addAll(leafSites);
-						allSites.addAll(internalSites);
-						Dep2StrRule leafAndInternalRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, allSites);
-						srcRuleStr = leafAndInternalRule.getLeft().toString();
-						tarRuleStr = String.join(" ", lexRule.getRight());
-						tarRuleStr += (" ||| " + lexRule.encodeAlignment());
-						ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
+						if (!leafSites.isEmpty() && !internalSites.isEmpty()) {
+							List<Integer> allSites = new ArrayList<Integer>();
+							allSites.addAll(leafSites);
+							allSites.addAll(internalSites);
+							Dep2StrRule leafAndInternalRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, allSites);
+							srcRuleStr = leafAndInternalRule.getLeft().toString();
+							tarRuleStr = String.join(" ", lexRule.getRight());
+							tarRuleStr += (" ||| " + lexRule.encodeAlignment());
+							ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
+						}
 					}
 				}
 			}
@@ -195,8 +203,8 @@ public class Dep2StrRuleExtractor {
 		// dump rule table
 		for (Pair<String, String> ruleStr: ruleCounter.keys()) {
 			String[] srcRule = ruleStr.getFirst().split(" ");
-			String[] tarRule = ruleStr.getSecond().split(" ||| ")[0].split(" ");
-			String alignmentStr = ruleStr.getSecond().split(" ||| ")[1];
+			String[] tarRule = ruleStr.getSecond().split(" \\|\\|\\| ")[0].split(" ");
+			String alignmentStr = ruleStr.getSecond().split(" \\|\\|\\| ")[1];
 			int[] ruleAlignment = Dep2StrRule.buildAlignment(alignmentStr);
 
 			double lexf2escore = 0.0, lexe2fscore = 0.0;
@@ -248,12 +256,30 @@ public class Dep2StrRuleExtractor {
 	 */
 	private List<Pair<Integer, Integer>> headSpan(DepTree root, WordAlignedSentencePair alignment) {
 		List<Tree<DepNode>> nodes = root.postOrderTraverse();
-		List<Pair<Integer, Integer>> headSpan = new ArrayList<Pair<Integer, Integer>>(nodes.size());
+		Map<Integer, Pair<Integer, Integer>> spanMap = new TreeMap<Integer, Pair<Integer, Integer>>();
 		for (Tree<DepNode> node : nodes) {
 			List<Integer> span = new ArrayList<Integer>();
-			span.addAll(alignment.f2e(node.getIndex()));
-			headSpan.set(node.getIndex(), new Pair<Integer, Integer>(Collections.min(span), Collections.max(span)));
+			Collection<Integer> alignments;
+			if (root.rooted) {
+				alignments = alignment.f2e(node.getIndex() - 1);
+			}
+			else {
+				alignments = alignment.f2e(node.getIndex());
+			}
+			if (alignments != null) {
+				span.addAll(alignments);
+				spanMap.put(node.getIndex(), new Pair<Integer, Integer>(Collections.min(span), Collections.max(span)));
+			}
+			else {
+				spanMap.put(node.getIndex(), null);
+			}
 		}
+		List<Pair<Integer, Integer>> headSpan = new ArrayList<Pair<Integer, Integer>>();
+		// TODO: used to occupy ROOT position for un-rooted tree, but dunno whether this is the correct way
+		if (!root.rooted) {
+			headSpan.add(null);
+		}
+		headSpan.addAll(spanMap.values());
 		return headSpan;
 	}
 
@@ -265,18 +291,44 @@ public class Dep2StrRuleExtractor {
 	 */
 	private boolean[] consistency(List<Pair<Integer, Integer>> headSpans) {
 		boolean[] res = new boolean[headSpans.size()];
+		Arrays.fill(res, true);
 		for (int i = 1; i < headSpans.size(); i++) {
 			for (int j = 0; j < i; j++) {
 				Pair<Integer, Integer> hs1 = headSpans.get(i);
 				Pair<Integer, Integer> hs2 = headSpans.get(j);
 				// judge intersection
-				if (hs1.getSecond() >= hs2.getFirst()) {
+				if (hs1 == null) {
+					res[i] = false;
+				}
+				else if (hs2 == null) {
+					res[j] = false;
+				}
+				else if (spanIntersect(hs1, hs2)) {
 					res[i] = false;
 					res[j] = false;
 				}
 			}
 		}
 		return res;
+	}
+
+	/**
+	 * Check whether two spans intersect with each other.
+	 *
+	 * @param hs1
+	 * @param hs2
+	 * @return
+	 */
+	private boolean spanIntersect(Pair<Integer, Integer> hs1, Pair<Integer, Integer> hs2) {
+		if (hs1.getFirst() > hs2.getSecond()) {
+			return false;
+		}
+		else if (hs1.getSecond() < hs2.getFirst()) {
+			return false;
+		}
+		else {
+			return true;
+		}
 	}
 
 	/**
@@ -291,7 +343,7 @@ public class Dep2StrRuleExtractor {
 	 */
 	private List<Pair<Integer, Integer>> depSpan(DepTree root, List<Pair<Integer, Integer>> headSpans, boolean[] consistency) {
 		List<Tree<DepNode>> nodes = root.postOrderTraverse();
-		List<Pair<Integer, Integer>> res = new ArrayList<Pair<Integer, Integer>>(nodes.size());
+		Map<Integer, Pair<Integer, Integer>> spanMap = new TreeMap<Integer, Pair<Integer, Integer>>();
 		for (Tree<DepNode> node: nodes) {
 			Pair<Integer, Integer> headSpan = headSpans.get(node.getIndex());
 			int lb = -1, ub = -1;
@@ -311,10 +363,15 @@ public class Dep2StrRuleExtractor {
 				}
 			}
 			if (lb != -1 && ub != -1) {
-				res.set(node.getIndex(), new Pair<Integer, Integer>(lb, ub));
+				spanMap.put(node.getIndex(), new Pair<Integer, Integer>(lb, ub));
+			}
+			else {
+				spanMap.put(node.getIndex(), null);
 			}
 		}
-		return res;
+		List<Pair<Integer, Integer>> depSpan = new ArrayList<Pair<Integer, Integer>>();
+		depSpan.addAll(spanMap.values());
+		return depSpan;
 	}
 
 	/**
@@ -352,7 +409,7 @@ public class Dep2StrRuleExtractor {
 		List<Integer> alignmentList = new ArrayList<Integer>();
 		for (int j = 0; j < rawtar.size(); j++) {
 			int alignedSource = rawtar2src.get(j).getE();
-			if (substitutionSites.contains(alignedSource)) {
+			if (!substitutionSites.contains(alignedSource)) {
 				Indexed<String> indexedRawTars = rawtar.get(j);
 				List<String> decomposedTars = Arrays.asList(indexedRawTars.getE().split(" "));
 				tarList.addAll(decomposedTars);

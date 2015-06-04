@@ -9,7 +9,11 @@ import java.util.List;
  *
  */
 public class PennTreeReader {
-	
+
+	static public class Index {
+		public int val;
+	}
+
 	static public Tree<String> ReadPennTree(String PennTree) {
 		Tree<String> root;
 		
@@ -30,18 +34,19 @@ public class PennTreeReader {
 		root.setParent(null);
 		//deal with daughters
 		List<Tree<String>> L = new ArrayList<Tree<String>>();
-		int currentPos = findNearestNonSpace(PennTree, PennTree.indexOf(' '));
-		while(currentPos < PennTree.length()) {
-			if (PennTree.charAt(currentPos) == ')') {
+		Index currentPos = new Index();
+		currentPos.val = findNearestNonSpace(PennTree, PennTree.indexOf(' '));
+		while(currentPos.val < PennTree.length()) {
+			if (PennTree.charAt(currentPos.val) == ')') {
 				break;
 			}
-			else if(PennTree.charAt(currentPos) != ' ') {
+			else if(PennTree.charAt(currentPos.val) != ' ') {
 				Tree<String> temp = ReadPennTree(PennTree, currentPos);
 				temp.setParent(root);
 				L.add(temp);
 			}
 			else {
-				currentPos++;
+				currentPos.val++;
 			}
 		}
 		if (!L.isEmpty()) {
@@ -57,17 +62,17 @@ public class PennTreeReader {
 	 * @param PennTree
 	 * @param currentPos
 	 */
-	static private Tree<String> ReadPennTree(String PennTree, int currentPos) {
+	static private Tree<String> ReadPennTree(String PennTree, Index currentPos) {
 		int startpt = 0, endpt = 0;
-		currentPos = findNearestNonSpace(PennTree, currentPos);
+		currentPos.val = findNearestNonSpace(PennTree, currentPos.val);
 		Tree<String> node;
 		boolean isLexical = false;
 		
 		//deal with the label
 		//for normal nodes
-		if(PennTree.charAt(currentPos) == '(') {
-			startpt = currentPos + 1;
-			for(int i = currentPos; i < PennTree.length(); i++) {
+		if(PennTree.charAt(currentPos.val) == '(') {
+			startpt = currentPos.val + 1;
+			for(int i = currentPos.val; i < PennTree.length(); i++) {
 				if(PennTree.charAt(i) == ' ' && i > startpt) {
 					endpt = i;
 					break;
@@ -77,8 +82,8 @@ public class PennTreeReader {
 		//for lexical nodes
 		else {
 			isLexical = true;
-			startpt = currentPos;
-			for(int i = currentPos; i < PennTree.length(); i++) {
+			startpt = currentPos.val;
+			for(int i = currentPos.val; i < PennTree.length(); i++) {
 				if((PennTree.charAt(i) == '(' || PennTree.charAt(i) == ')') && i > startpt) {
 					endpt = i;
 					break;
@@ -89,20 +94,20 @@ public class PennTreeReader {
 		
 		//deal with the daughters & isLexical
 		List<Tree<String>> L = new ArrayList<Tree<String>>();
-		currentPos = findNearestNonSpace(PennTree, endpt);
-		while(currentPos < PennTree.length() && !isLexical) {
+		currentPos.val = findNearestNonSpace(PennTree, endpt);
+		while(currentPos.val < PennTree.length() && !isLexical) {
 			//for normal node
-			if(PennTree.charAt(currentPos) == '(') {
+			if(PennTree.charAt(currentPos.val) == '(') {
 				isLexical = false;
 				Tree<String> temp = ReadPennTree(PennTree, currentPos);
 				temp.setParent(node);
 				L.add(temp);
 			}
 			//for the ends(and the lexical ones)
-			else if(PennTree.charAt(currentPos) == ')') {
+			else if(PennTree.charAt(currentPos.val) == ')') {
 				if(isLexical == false) {
-					currentPos++;
-					currentPos = findNearestNonSpace(PennTree, currentPos);
+					currentPos.val++;
+					currentPos.val = findNearestNonSpace(PennTree, currentPos.val);
 				}
 				break;
 			}

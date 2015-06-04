@@ -56,7 +56,7 @@ public class Dep2StrRule implements Hashable {
 		int[] alignments = new int[tokens.length];
 		for (String token: tokens) {
 			String[] indices = token.split("-");
-			alignments[Integer.valueOf(indices[1])] = Integer.valueOf(indices[0]);
+			alignments[Integer.valueOf(indices[0])] = Integer.valueOf(indices[1]);
 		}
 		return alignments;
 	}
