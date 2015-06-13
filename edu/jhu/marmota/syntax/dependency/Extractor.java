@@ -20,7 +20,10 @@ public class Extractor implements Runnable {
 	@Option(name = "en", required = true, gloss = "english sentence")
 	public String en;
 
-	@Option(name = "dep", required = true, gloss = "dependency tree file")
+	@Option(name = "cons", gloss = "constituent tree file")
+	public String cons = null;
+
+	@Option(name = "dep", required = true, gloss = "dependency tree file or combined tree file")
 	public String dep;
 
 	@Option(name = "f2e", required = true, gloss = "direct lexical translation table")
@@ -35,7 +38,7 @@ public class Extractor implements Runnable {
 	public void run() {
 		try {
 			Dep2StrRuleExtractor extractor = new Dep2StrRuleExtractor(align,
-					fr, en, dep, rule, f2e, e2f);
+					fr, en, cons, dep, rule, f2e, e2f);
 			extractor.extract();
 		}
 		catch (IOException e) {

@@ -15,6 +15,7 @@ public class AlignmentReader {
 	private BufferedReader alignReader;
 	private BufferedReader foreignReader;
 	private BufferedReader englishReader;
+	private int lineCounter = 0;
 	
 	public AlignmentReader(String align, String foreign, String english) throws FileNotFoundException {
 		alignReader = new BufferedReader(new FileReader(new File(align)));
@@ -26,15 +27,16 @@ public class AlignmentReader {
 		String align = alignReader.readLine();
 		String fsent = foreignReader.readLine();
 		String esent = englishReader.readLine();
+		lineCounter += 1;
 		// reaching EOF
 		if (align == null && fsent == null && esent == null) {
 			return null;
 		}
 		else if (align == null || fsent == null || esent == null) {
-			throw new IllegalStateException("different length between alignment, foreign sentence "
-					+ "and english sentence file");
+			throw new IllegalStateException("line " + String.valueOf(lineCounter) + ": different length between " +
+					"alignment, foreign sentence and english sentence file");
 		}
-		
+
 		String[] aligntokens = align.split(" ");
 		List<Pair<Integer, Integer>> alignments = new ArrayList<Pair<Integer, Integer>>();
 		for (String aligntoken: aligntokens) {

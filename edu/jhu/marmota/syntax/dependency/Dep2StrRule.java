@@ -1,10 +1,11 @@
 package edu.jhu.marmota.syntax.dependency;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 
 import edu.jhu.marmota.util.Hashable;
+import edu.jhu.marmota.util.Numbers;
 
 /**
  * 
@@ -30,7 +31,7 @@ public class Dep2StrRule implements Hashable {
 	private String[] tarright;
 	/**
 	 * alignments[j] = i
-	 * means the i-th node on the source side is aligned to the j-th node on the target side
+	 * means the i-th node on the source side is aligned to the j-th node on the target side (i = -1 means NULL)
 	 */
 	private int[] alignments;
 	
@@ -53,12 +54,15 @@ public class Dep2StrRule implements Hashable {
 	 */
 	static public int[] buildAlignment(String record) {
 		String[] tokens= record.split(" ");
-		int[] alignments = new int[tokens.length];
+		List<Integer> alignments = new ArrayList<Integer>();
 		for (String token: tokens) {
 			String[] indices = token.split("-");
-			alignments[Integer.valueOf(indices[0])] = Integer.valueOf(indices[1]);
+			while (alignments.size() < Integer.valueOf(indices[1]) + 1) {
+				alignments.add(-1);
+			}
+			alignments.set(Integer.valueOf(indices[1]), Integer.valueOf(indices[0]));
 		}
-		return alignments;
+		return Numbers.Integer2int(alignments.toArray(new Integer[alignments.size()]));
 	}
 
 	/**
@@ -69,8 +73,10 @@ public class Dep2StrRule implements Hashable {
 	public String encodeAlignment() {
 		StringBuilder res = new StringBuilder();
 		for (int i = 0; i < alignments.length; i++) {
-			res.append(String.valueOf(i) + "-" + alignments[i]);
-			res.append(" ");
+			if (alignments[i] != -1) {
+				res.append(alignments[i] + "-" + String.valueOf(i));
+				res.append(" ");
+			}
 		}
 		return res.toString().trim();
 	}

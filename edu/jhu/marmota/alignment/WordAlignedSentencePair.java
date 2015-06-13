@@ -43,4 +43,8 @@ public class WordAlignedSentencePair {
 	public Collection<Integer> e2f(int eindex) {
 		return e2f.getCollection(eindex);
 	}
+
+	public boolean isAligned(int findex, int eindex) {
+		return f2e.containsValue(findex, eindex);
+	}
 }

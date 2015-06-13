@@ -9,16 +9,15 @@ import java.util.*;
 import edu.jhu.marmota.alignment.AlignmentReader;
 import edu.jhu.marmota.alignment.WordAlignedSentencePair;
 import edu.jhu.marmota.lexeme.LexemeTable;
-import edu.jhu.marmota.util.Indexed;
-import edu.jhu.marmota.util.Numbers;
-import edu.jhu.marmota.util.PairCounter;
-import edu.jhu.marmota.util.Tree;
+import edu.jhu.marmota.util.*;
 import fig.basic.Pair;
 
 /**
  * Extract and score the rules from input trees and alignments.
  *
  * Note that currently trees must be projective.
+ *
+ * TODO: not sure if we treated the rooted/un-rooted tree correctly at present, ctrl + F "rooted" to make revisions
  *
  * @author shuoyang
  */
@@ -58,9 +57,14 @@ public class Dep2StrRuleExtractor {
 	private LexemeTable lexf2e, lexe2f;
 	private PairCounter<String> ruleCounter;
 
-	public Dep2StrRuleExtractor(String align, String fr, String en, String dep,
+	public Dep2StrRuleExtractor(String align, String fr, String en, String cons, String dep,
 			String rule, String f2e, String e2f) throws IOException {
-		depTreeReader = new DepTreeReader(dep);
+		if (cons == null) {
+			depTreeReader = new DepTreeReader(dep);
+		}
+		else {
+			depTreeReader = new DepTreeReader(cons, dep);
+		}
 		alignmentReader = new AlignmentReader(align, fr, en);
 		ruleWriter = new BufferedWriter(new FileWriter(new File(rule)));
 		lexf2e = new LexemeTable(f2e, LexemeTable.Type.f2e);
@@ -75,18 +79,30 @@ public class Dep2StrRuleExtractor {
 		while (tree != null && alignment != null) {
 			List<Pair<Integer, Integer>> headSpans = headSpan(tree, alignment);
 			boolean[] consistency = consistency(headSpans);
-			List<Pair<Integer, Integer>> depSpan = depSpan(tree, headSpans, consistency);
+			List<Pair<Integer, Integer>> depSpans = depSpan(tree, headSpans, consistency);
 
 			List<Tree<DepNode>> nodes = tree.postOrderTraverse();
+			List<Integer> leafSites = new ArrayList<Integer>();
+			List<Integer> internalSites = new ArrayList<Integer>();
+			for (Tree<DepNode> node: nodes) {
+				// recognize substitution sites, index them by source token #
+				if (!node.getChildren().isEmpty()) {
+					internalSites.add(getNodeIndex(tree.rooted, node));
+				}
+				// only leaf nodes belonging to Open class is substituted
+				else if (OpenClass.contains(node.getSelf().postag())) {
+					leafSites.add(getNodeIndex(tree.rooted, node));
+				}
+			}
 			// for head-dependent segments headed at each node
 			for (Tree<DepNode> node : nodes) {
 				// acceptable head?
 				if (consistency[node.getIndex()]) {
-					// acceptable child?
+					// acceptable dependents?
 					boolean allDepAcceptable = true;
-					if (node.getChildren().isEmpty()) {
+					if (!node.getChildren().isEmpty()) {
 						for (Tree<DepNode> child : node.getChildren()) {
-							if (depSpan.get(child.getIndex()) != null) {
+							if (depSpans.get(child.getIndex()) == null) {
 								allDepAcceptable = false;
 								break;
 							}
@@ -97,17 +113,6 @@ public class Dep2StrRuleExtractor {
 					// TODO: the implementation is quite dirty here, maybe there are better solutions?
 					if (allDepAcceptable) {
 						List<Tree<DepNode>> children = node.getChildren();
-						// recognize substitution sites
-						List<Integer> leafSites = new ArrayList<Integer>();
-						List<Integer> internalSites = new ArrayList<Integer>();
-						for (int i = 0; i < children.size(); i++) {
-							Tree<DepNode> child = children.get(i);
-							if (child.getChildren().isEmpty()) {
-								leafSites.add(i + 1);
-							} else if (OpenClass.contains(child.getSelf().postag())) {
-								internalSites.add(i + 1);
-							}
-						}
 
 						// collect raw target-side information
 						// rawtar contains target string aligned by node in the source tree, one node per cell.
@@ -127,21 +132,23 @@ public class Dep2StrRuleExtractor {
 						rawtar2src.add(new Indexed<Integer>(headSpan.getFirst(), 0));
 						// dependent to target
 						for (int i = 0; i < children.size(); i++) {
-							if (!internalSites.contains(i + 1)) {
+							Pair<Integer, Integer> depSpan = depSpans.get(children.get(i).getIndex());
+							// if the node is a leaf
+							// (but not necessarily in leafSites since it may not belong to OpenClass)
+							if (!internalSites.contains(getNodeIndex(tree.rooted, children.get(i)))) {
 								nodeTranslation = new StringBuilder();
-								headSpan = headSpans.get(children.get(i).getIndex());
-								if (headSpan != null) {
-									for (int j = headSpan.getFirst(); j <= headSpan.getSecond(); j++) {
+								if (depSpan != null) {
+									for (int j = depSpan.getFirst(); j <= depSpan.getSecond(); j++) {
 										nodeTranslation.append(alignment.e[j]);
 										nodeTranslation.append(" ");
 									}
-									rawtar.add(new Indexed<String>(headSpan.getFirst(), nodeTranslation.toString().trim()));
+									rawtar.add(new Indexed<String>(depSpan.getFirst(), nodeTranslation.toString().trim()));
 								}
 							} else {
-								rawtar.add(new Indexed<String>(headSpan.getFirst(), "$x"));
+								rawtar.add(new Indexed<String>(depSpan.getFirst(), "$x"));
 							}
-							if (headSpan != null) {
-								rawtar2src.add(new Indexed<Integer>(headSpan.getFirst(), i + 1));
+							if (depSpan != null) {
+								rawtar2src.add(new Indexed<Integer>(depSpan.getFirst(), i + 1));
 							}
 						}
 
@@ -149,15 +156,15 @@ public class Dep2StrRuleExtractor {
 						// ("raw" means that these nodes contain all params needed for building rules)
 						Collections.sort(rawtar);
 						Collections.sort(rawtar2src);
-						DepNode rawHead = node.getSelf();
-						List<DepNode> dependentsList = new ArrayList<DepNode>();
+
+						List<Indexed<DepNode>> rawsrc = new ArrayList<Indexed<DepNode>>();
+						rawsrc.add(new Indexed<DepNode>(getNodeIndex(tree.rooted, node), node.getSelf()));
 						for (Tree<DepNode> child : children) {
-							dependentsList.add(child.getSelf());
+							rawsrc.add(new Indexed<DepNode>(getNodeIndex(tree.rooted, child), child.getSelf()));
 						}
-						DepNode[] rawDependents = dependentsList.toArray(new DepNode[dependentsList.size()]);
 
 						// build lexicalized rules
-						Dep2StrRule lexRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, null);
+						Dep2StrRule lexRule = buildRule(rawsrc, rawtar, rawtar2src, alignment, null);
 						String srcRuleStr = lexRule.getLeft().toString();
 						String tarRuleStr = String.join(" ", lexRule.getRight());
 						tarRuleStr += (" ||| " + lexRule.encodeAlignment());
@@ -166,19 +173,19 @@ public class Dep2StrRuleExtractor {
 						// build unlexicalzed rules
 						// leaf substitution
 						if (!leafSites.isEmpty()) {
-							Dep2StrRule leafRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, leafSites);
+							Dep2StrRule leafRule = buildRule(rawsrc, rawtar, rawtar2src, alignment, leafSites);
 							srcRuleStr = leafRule.getLeft().toString();
-							tarRuleStr = String.join(" ", lexRule.getRight());
-							tarRuleStr += (" ||| " + lexRule.encodeAlignment());
+							tarRuleStr = String.join(" ", leafRule.getRight());
+							tarRuleStr += (" ||| " + leafRule.encodeAlignment());
 							ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
 						}
 
 						// internal substitution
 						if (!internalSites.isEmpty()) {
-							Dep2StrRule internalRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, internalSites);
+							Dep2StrRule internalRule = buildRule(rawsrc, rawtar, rawtar2src, alignment, internalSites);
 							srcRuleStr = internalRule.getLeft().toString();
-							tarRuleStr = String.join(" ", lexRule.getRight());
-							tarRuleStr += (" ||| " + lexRule.encodeAlignment());
+							tarRuleStr = String.join(" ", internalRule.getRight());
+							tarRuleStr += (" ||| " + internalRule.encodeAlignment());
 							ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
 						}
 
@@ -187,10 +194,10 @@ public class Dep2StrRuleExtractor {
 							List<Integer> allSites = new ArrayList<Integer>();
 							allSites.addAll(leafSites);
 							allSites.addAll(internalSites);
-							Dep2StrRule leafAndInternalRule = buildRule(rawtar, rawtar2src, rawHead, rawDependents, allSites);
+							Dep2StrRule leafAndInternalRule = buildRule(rawsrc, rawtar, rawtar2src, alignment, allSites);
 							srcRuleStr = leafAndInternalRule.getLeft().toString();
-							tarRuleStr = String.join(" ", lexRule.getRight());
-							tarRuleStr += (" ||| " + lexRule.encodeAlignment());
+							tarRuleStr = String.join(" ", leafAndInternalRule.getRight());
+							tarRuleStr += (" ||| " + leafAndInternalRule.encodeAlignment());
 							ruleCounter.increment(new Pair<String, String>(srcRuleStr, tarRuleStr));
 						}
 					}
@@ -207,22 +214,45 @@ public class Dep2StrRuleExtractor {
 			String alignmentStr = ruleStr.getSecond().split(" \\|\\|\\| ")[1];
 			int[] ruleAlignment = Dep2StrRule.buildAlignment(alignmentStr);
 
+			// Collect number of words aligned for each token to calculate the lex score
+			// Please refer to (Koehn, 2009) equation (5.9) for this part
+			Counter<Integer> alignmentCounter = new Counter<Integer>();
+			for (int j = 0; j < ruleAlignment.length; j++) {
+				alignmentCounter.increment(ruleAlignment[j]);
+			}
+
 			double lexf2escore = 0.0, lexe2fscore = 0.0;
 			for (int j = 0; j < ruleAlignment.length; j++) {
 				if (!tarRule[j].startsWith("$")) {
 					if (ruleAlignment[j] == 0) {
 						String srctoken = new DepNode(srcRule[0]).token();
+						// e2f (at most 1)
 						lexe2fscore += lexe2f.score(srctoken, tarRule[j]);
-						lexf2escore += lexf2e.score(srctoken, tarRule[j]);
+						// f2e (may be more than 1)
+						lexf2escore += (1 / alignmentCounter.count(0)) * lexf2e.score(srctoken, tarRule[j]);
 					}
 					// need to eliminate "->"
-					else {
+					else if (ruleAlignment[j] != -1) {
 						String srctoken = new DepNode(srcRule[ruleAlignment[j] + 1]).token();
+						// e2f (at most 1)
 						lexe2fscore += lexe2f.score(srctoken, tarRule[j]);
-						lexf2escore += lexf2e.score(srctoken, tarRule[j]);
+						// f2e (maybe more than 1)
+						lexf2escore += (1 / alignmentCounter.count(ruleAlignment[j])) * lexf2e.score(srctoken, tarRule[j]);
+					}
+					else {
+						// e2null
+						lexe2fscore += lexe2f.score("NULL", tarRule[j]);
 					}
 				}
 			}
+
+			// f2null
+			for (int i = 0; i < srcRule.length; i++) {
+				if (!alignmentCounter.keys().contains(i)) {
+					lexf2escore += lexf2e.score(srcRule[i], "NULL");
+				}
+			}
+
 			double f2escore = ruleCounter.count(ruleStr) / ruleCounter.countx(ruleStr.getFirst());
 			double e2fscore = ruleCounter.count(ruleStr) / ruleCounter.county(ruleStr.getSecond());
 
@@ -251,7 +281,7 @@ public class Dep2StrRuleExtractor {
 	/**
 	 * Get the head span of every node in the tree rooted at root.
 	 * By root I assume the index of nodes in this tree needs to start from 0 and be continuous.
-	 * 
+	 *
 	 * @param root
 	 * @param alignment
 	 * @return
@@ -379,29 +409,30 @@ public class Dep2StrRuleExtractor {
 	/**
 	 * build lex- and unlexicalized rules give raw target and raw source information.
 	 *
+	 * @param rawsrc the first cell contains the head, and then the dependents
 	 * @param rawtar each cell in raw tar corresponds to the head span of a source node
 	 * @param rawtar2src mapping from head span to source node
-	 * @param rawHead head node containing both token and postag
-	 * @param rawDependents dependents node containing both token and postag
+	 * @param alignment word alignment of the sentence pair
 	 * @param substitutionSites indexes of the substitution sites, if none just pass null
 	 * @return
 	 */
-	private Dep2StrRule buildRule(List<Indexed<String>> rawtar, List<Indexed<Integer>> rawtar2src,
-						  DepNode rawHead, DepNode[] rawDependents, List<Integer> substitutionSites) {
+	private Dep2StrRule buildRule(List<Indexed<DepNode>> rawsrc, List<Indexed<String>> rawtar,
+								  List<Indexed<Integer>> rawtar2src, WordAlignedSentencePair alignment,
+								  List<Integer> substitutionSites) {
 		if (substitutionSites == null) {
 			substitutionSites = new ArrayList<Integer>(0);
 		}
 
 		// build source
 		// if site needs to be substituted, build source node with postag, otherwise lexical item
-		DepNode srcleft = new DepNode(rawHead.token(), null);
-		DepNode[] srcright = new DepNode[rawDependents.length];
-		for (int i = 0; i < rawDependents.length; i++) {
-			if (substitutionSites.contains(i + 1)) {
-				srcright[i] = new DepNode(null, rawDependents[i].postag());
+		DepNode srcleft = new DepNode(rawsrc.get(0).getE().token(), null);
+		DepNode[] srcright = new DepNode[rawsrc.size() - 1];
+		for (int i = 1; i < rawsrc.size(); i++) {
+			if (substitutionSites.contains(rawsrc.get(i).getIndex())) {
+				srcright[i - 1] = new DepNode(null, rawsrc.get(i).getE().postag());
 			}
 			else {
-				srcright[i] = new DepNode(rawDependents[i].token(), null);
+				srcright[i - 1] = new DepNode(rawsrc.get(i).getE().token(), null);
 			}
 		}
 
@@ -411,12 +442,17 @@ public class Dep2StrRuleExtractor {
 		List<Integer> alignmentList = new ArrayList<Integer>();
 		for (int j = 0; j < rawtar.size(); j++) {
 			int alignedSource = rawtar2src.get(j).getE();
-			if (!substitutionSites.contains(alignedSource)) {
+			if (alignedSource == 0 || !substitutionSites.contains(rawsrc.get(alignedSource).getIndex())) {
 				Indexed<String> indexedRawTars = rawtar.get(j);
 				List<String> decomposedTars = Arrays.asList(indexedRawTars.getE().split(" "));
 				tarList.addAll(decomposedTars);
 				for (int k = 0; k < decomposedTars.size(); k++) {
-					alignmentList.add(alignedSource);
+					if (alignment.isAligned(rawsrc.get(alignedSource).getIndex(), indexedRawTars.getIndex() + k)) {
+						alignmentList.add(alignedSource);
+					}
+					else {
+						alignmentList.add(-1);
+					}
 				}
 			}
 			else {
@@ -426,8 +462,15 @@ public class Dep2StrRuleExtractor {
 		}
 
 		String[] tar = tarList.toArray(new String[tarList.size()]);
-		int[] alignment = Numbers.Integer2int(alignmentList.toArray(new Integer[alignmentList.size()]));
+		return new Dep2StrRule(srcleft, srcright, tar, Numbers.Integer2int(alignmentList.toArray(new Integer[alignmentList.size()])));
+	}
 
-		return new Dep2StrRule(srcleft, srcright, tar, alignment);
+	private int getNodeIndex(boolean rooted, Tree<DepNode> node) {
+		if (rooted) {
+			return node.getIndex() - 1;
+		}
+		else {
+			return node.getIndex();
+		}
 	}
 }

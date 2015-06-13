@@ -20,6 +20,10 @@ public class Indexed<T> implements Comparable<Indexed<T>> {
         return e;
     }
 
+    public int getIndex() {
+        return index;
+    }
+
     @Override
     public int compareTo(Indexed<T> o) {
         return index - o.index;

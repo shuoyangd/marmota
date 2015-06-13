@@ -90,8 +90,7 @@ public class LexemeTable {
 			if (!transformable(fr)) {
 				// translate unknown foreign word "as is"
 				return 0.0;
-			}
-			else {
+			} else {
 				return Double.NEGATIVE_INFINITY;
 			}
 		}

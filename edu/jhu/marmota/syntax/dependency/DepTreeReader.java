@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Loading DepTrees from file.
+ * We stick to the node index assigned by the file, so the index might alter depending on "rooted" or "un-rooted" trees.
+ *
  * TODO: the type hierarchy is not perfect here.
  * - PennTreeReader should be replaced with more general "ConstTreeReader"?
  * - This class should be renamed with "TupleDepTreeReader" and inherits an more general "DepTreeReader"?
@@ -22,11 +25,25 @@ import java.util.Map;
  * @author shuoyang
  */
 public class DepTreeReader {
-	
-	BufferedReader treeReader;
-	
-	public DepTreeReader(String tree) throws FileNotFoundException {
-		this.treeReader = new BufferedReader(new FileReader(new File(tree)));
+
+	private BufferedReader constReader;
+	private BufferedReader depReader;
+
+	/**
+	 * Whether the constituent tree and dependency tree are written in the same file.
+	 * This will cause "read" to act differently.
+	 */
+	final public boolean consolidated;
+
+	public DepTreeReader(String treeFile) throws FileNotFoundException {
+		this.depReader = new BufferedReader(new FileReader(new File(treeFile)));
+		this.consolidated = true;
+	}
+
+	public DepTreeReader(String constFile, String depFile) throws FileNotFoundException {
+		this.constReader = new BufferedReader(new FileReader(new File(constFile)));
+		this.depReader = new BufferedReader(new FileReader(new File(depFile)));
+		this.consolidated = false;
 	}
 
 	/**
@@ -37,20 +54,41 @@ public class DepTreeReader {
 	public DepTree read() throws IOException {
 		List<String> constr = new ArrayList<String>();
 		List<String> depstr = new ArrayList<String>();
-		String currentString = treeReader.readLine();
-		// reaching EOF
-		if (currentString == null) {
-			return null;
-		}
+		if (consolidated) {
+			String currentString = depReader.readLine();
+			// reaching EOF
+			if (currentString == null) {
+				return null;
+			}
 
-		while (!currentString.trim().equals("")) {
-			constr.add(currentString);
-			currentString = treeReader.readLine();
+			while (!currentString.trim().equals("")) {
+				constr.add(currentString);
+				currentString = depReader.readLine();
+			}
+			currentString = depReader.readLine();
+			while (!currentString.trim().equals("")) {
+				depstr.add(currentString);
+				currentString = depReader.readLine();
+			}
 		}
-		currentString = treeReader.readLine();
-		while (!currentString.trim().equals("")) {
-			depstr.add(currentString);
-			currentString = treeReader.readLine();
+		else {
+			String constLine = constReader.readLine();
+			String depLine = depReader.readLine();
+			// reaching EOF
+			if (constLine == null || depLine == null) {
+				return null;
+			}
+
+			while (!constLine.trim().equals("") || !depLine.trim().equals("")) {
+				if (!constLine.trim().equals("")) {
+					constr.add(constLine);
+					constLine = constReader.readLine();
+				}
+				if (!depLine.trim().equals("")) {
+					depstr.add(depLine);
+					depLine = depReader.readLine();
+				}
+			}
 		}
 		return StanfordDepTreeBuilder(PennTreeReader.ReadPennTree(String.join(" ", constr.toArray(new String[constr.size()]))),
 				depstr.toArray(new String[depstr.size()]));
@@ -114,6 +152,6 @@ public class DepTreeReader {
 	}
 
 	public void close() throws IOException {
-		treeReader.close();
+		depReader.close();
 	}
 }
